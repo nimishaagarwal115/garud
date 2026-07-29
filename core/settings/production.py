@@ -1,0 +1,18 @@
+from .base import *
+
+SECRET_KEY = env("SECRET_KEY")
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost"
+]
+
+CASHFREE_CLIENT_ID = env("CASHFREE_CLIENT_ID")
+CASHFREE_CLIENT_SECRET_KEY = env("CASHFREE_CLIENT_SECRET_KEY")
+
+CASHFREE_ENVIRONMENT = env("CASHFREE_ENVIRONMENT")
+
+JAVASCRIPT_ENV = env("JAVASCRIPT_ENV")

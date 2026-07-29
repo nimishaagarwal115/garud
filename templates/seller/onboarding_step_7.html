@@ -1,0 +1,238 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block title %}Garud | Address{% endblock %}
+
+{% block All_Content %}
+<!-- Include Stepper -->
+{% include "seller/includes/onboarding_stepper.html" %}
+
+<div class="d-flex flex-column align-items-center px-4 py-5" style="min-height: 80vh; background-color: #f8f9fa;">
+    
+    <!-- ==================== SCREEN A: VOICE CAPTURE ==================== -->
+    <div id="voice-screen" class="w-100 d-flex flex-column align-items-center justify-content-center" style="max-width: 400px; margin-top: 40px;">
+        <div class="mb-5 text-center">
+            <button type="button" id="voice-btn" class="btn rounded-circle garud-mic-static-radar" style="width: 100px; height: 100px;">
+                <i class="bi bi-mic text-white" style="font-size: 2.5rem;"></i>
+            </button>
+        </div>
+        <p id="voice-status" class="text-center text-muted mb-4" style="font-size: 14px; min-height: 20px;"></p>
+        <h2 class="text-center mb-1" style="font-weight: 700; color: #333;" data-translate="tell_us_address">अपना सम्पूर्ण पता बतायें</h2>
+        <p class="text-center text-muted mb-4" style="font-size: 14px;" data-translate="address_helper">(बिल्डिंग नंबर - गली, पिन कोड, शहर, जिला, राज्य)</p>
+    </div>
+
+    <!-- ==================== SCREEN B: CONFIRMATION ==================== -->
+    <div id="confirmation-screen" class="w-100" style="max-width: 400px; display: none;">
+        
+        <form method="post" id="confirmation-form">
+            {% csrf_token %}
+            
+            <h3 class="mb-4 text-center" style="font-weight: 700; color: #333;" data-translate="personal_information">व्यक्तिगत सूचना</h3>
+            
+            <div class="text-center mb-4">
+                <p class="text-muted mb-1" style="font-size: 12px;" data-translate="photo_label">फोटो</p>
+                {% if photo_url %}
+                    <img src="{{ photo_url }}" alt="Profile Photo" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;">
+                {% else %}
+                    <div class="rounded-circle border d-inline-flex align-items-center justify-content-center bg-light" style="width: 100px; height: 100px;">
+                        <i class="bi bi-person text-secondary" style="font-size: 3rem;"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="your_name">अपना नाम</label>
+                <input type="text" class="form-control form-control-lg bg-light" value="{{ user_name }}" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="aadhaar_number">आधार कार्ड नंबर</label>
+                <input type="text" class="form-control form-control-lg bg-light" value="{{ aadhaar_number }}" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="mobile_number">मोबाइल नंबर</label>
+                <input type="text" class="form-control form-control-lg bg-light" value="{{ mobile_number }}" readonly>
+            </div>
+
+            <h3 class="text-center mb-4 mt-5" style="font-weight: 700; color: #333;" data-translate="shop_information">दुकान की सूचना</h3>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="gst_number">GST नंबर</label>
+                <input type="text" class="form-control form-control-lg bg-light" value="{{ gst_number }}" readonly>
+            </div>
+
+            <div class="mb-5">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="shop_name">दुकान नाम</label>
+                <input type="text" class="form-control form-control-lg bg-light" value="{{ shop_name }}" readonly>
+            </div>
+            
+            <hr class="my-4">
+
+            <h3 class="text-center mb-4" style="font-weight: 700; color: #333;" data-translate="address_info">पता</h3>
+
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label text-muted" style="font-size: 13px;" data-translate="pincode">पिन कोड</label>
+                    <div class="input-group">
+                        <input type="text" id="pincode" name="pincode" class="form-control form-control-lg bg-white" maxlength="6" pattern="\d{6}" required>
+                        <span class="input-group-text bg-white cursor-pointer" onclick="document.getElementById('pincode').value='';">
+                            <i class="bi bi-x-circle text-muted"></i>
+                        </span>
+                    </div>
+                    <small id="pincode-status" class="text-danger mt-1 d-block" style="font-size: 11px; min-height: 16px;"></small>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label text-muted" style="font-size: 13px;" data-translate="city">शहर</label>
+                    <div class="input-group">
+                        <input type="text" id="city" name="city" class="form-control form-control-lg bg-white" required>
+                        <span class="input-group-text bg-white cursor-pointer" onclick="document.getElementById('city').value='';">
+                            <i class="bi bi-x-circle text-muted"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label text-muted" style="font-size: 13px;" data-translate="district">जिला</label>
+                    <div class="input-group">
+                        <input type="text" id="zilla" name="zilla" class="form-control form-control-lg bg-white" required>
+                        <span class="input-group-text bg-white cursor-pointer" onclick="document.getElementById('zilla').value='';">
+                            <i class="bi bi-x-circle text-muted"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label text-muted" style="font-size: 13px;" data-translate="state">राज्य</label>
+                    <div class="input-group">
+                        <input type="text" id="state" name="state" class="form-control form-control-lg bg-white" required>
+                        <span class="input-group-text bg-white cursor-pointer" onclick="document.getElementById('state').value='';">
+                            <i class="bi bi-x-circle text-muted"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="building_street">बिल्डिंग नंबर, गली</label>
+                <div class="input-group">
+                    <input type="text" id="address" name="address" class="form-control form-control-lg bg-white" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.getElementById('address').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <p class="text-center text-muted mb-4" style="font-size: 13px; line-height: 1.5;" data-translate="address_confirmation_instruction">
+                पता सही है तो आगे बटन दबायें, अन्यथा वापस पता बोलें
+            </p>
+
+            <div class="d-flex justify-content-between gap-3 mt-4 mb-5">
+                <button type="button" id="speak-again-btn" class="btn btn-warning w-50 py-3" style="font-size: 1rem; border-radius: 8px;" data-translate="speak_again">वापस बोले</button>
+                <button type="submit" class="btn btn-danger w-50 py-3" style="font-size: 1rem; border-radius: 8px;" data-translate="save_and_continue">सेव और जारी रखें</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block AllScript %}
+<script src="{% static 'js/voice/GarudNumberParser.js' %}?v=4.0"></script>
+<script src="{% static 'js/voice/GarudAddressParser.js' %}?v=1.0"></script>
+<script src="{% static 'js/voice/GarudVoice.js' %}?v=4.0"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const voiceScreen = document.getElementById("voice-screen");
+        const confirmationScreen = document.getElementById("confirmation-screen");
+        const speakAgainBtn = document.getElementById("speak-again-btn");
+        const voiceBtn = document.getElementById("voice-btn");
+        const statusEl = document.getElementById("voice-status");
+
+        // Hook up the new callback flow with async address parser
+        voiceBtn.addEventListener("click", () => {
+            window.GarudVoice.start("address", "voice-btn", "voice-status", "text", async function(transcript) {
+                
+                statusEl.textContent = "Processing Address...";
+                
+                // Use our new smart parser to extract JUST the building info
+                const parsed = await window.GarudAddressParser.parse(transcript);
+                
+                // ONLY populate the building/street field from voice.
+                document.getElementById('address').value = parsed.building || transcript;
+                
+                // Ensure other fields are empty initially
+                document.getElementById('pincode').value = "";
+                document.getElementById('city').value = "";
+                document.getElementById('zilla').value = "";
+                document.getElementById('state').value = "";
+                document.getElementById('pincode-status').textContent = "";
+                document.getElementById('pincode-status').className = "text-danger mt-1 d-block";
+
+                // On Success: switch screens
+                voiceScreen.classList.remove("d-flex");
+                voiceScreen.classList.add("d-none");
+                confirmationScreen.style.display = "block";
+            });
+        });
+
+        // ---------------------------------------------------------
+        // PIN CODE AUTO DETECTION
+        // ---------------------------------------------------------
+        const pincodeInput = document.getElementById("pincode");
+        const pincodeStatus = document.getElementById("pincode-status");
+        
+        async function fetchPinDetails(pin) {
+            pincodeStatus.className = "text-primary mt-1 d-block";
+            pincodeStatus.textContent = "Loading...";
+            try {
+                const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+                const data = await res.json();
+                
+                if (data && data[0] && data[0].Status === "Success") {
+                    const postOffice = data[0].PostOffice[0];
+                    document.getElementById('state').value = postOffice.State || "";
+                    document.getElementById('zilla').value = postOffice.District || "";
+                    document.getElementById('city').value = postOffice.Block || postOffice.District || "";
+                    
+                    pincodeStatus.className = "text-success mt-1 d-block";
+                    pincodeStatus.textContent = "Verified";
+                } else {
+                    pincodeStatus.className = "text-danger mt-1 d-block";
+                    pincodeStatus.textContent = "Invalid PIN Code";
+                }
+            } catch (err) {
+                pincodeStatus.className = "text-danger mt-1 d-block";
+                pincodeStatus.textContent = "Network error, please enter manually";
+            }
+        }
+
+        pincodeInput.addEventListener("input", (e) => {
+            // only allow numbers
+            e.target.value = e.target.value.replace(/\D/g, "");
+            
+            if (e.target.value.length === 6) {
+                fetchPinDetails(e.target.value);
+            } else {
+                pincodeStatus.textContent = "";
+            }
+        });
+
+        pincodeInput.addEventListener("blur", (e) => {
+            if (e.target.value.length === 6 && pincodeStatus.textContent === "") {
+                fetchPinDetails(e.target.value);
+            }
+        });
+
+        // Speak again logic
+        speakAgainBtn.addEventListener("click", () => {
+            confirmationScreen.style.display = "none";
+            voiceScreen.classList.remove("d-none");
+            voiceScreen.classList.add("d-flex");
+            statusEl.textContent = ""; // clear status
+            // Auto trigger listening again
+            voiceBtn.click();
+        });
+    });
+</script>
+{% endblock %}

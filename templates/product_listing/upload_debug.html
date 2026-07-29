@@ -1,0 +1,174 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}Upload Product - Debug{% endblock %}
+
+{% block All_Content %}
+<div class="container-fluid p-0">
+    <h1>Product Upload Wizard - Debug Version</h1>
+    
+    <div style="padding: 20px;">
+        <h2>Step 1: Upload Media</h2>
+        <p>Test buttons:</p>
+        
+        <button id="camera-btn" style="padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px;">
+            📷 Use Camera
+        </button>
+        
+        <button id="gallery-btn" style="padding: 10px 20px; margin: 10px; background: #6c757d; color: white; border: none; border-radius: 5px;">
+            🖼️ Choose from Gallery
+        </button>
+        
+        <input type="file" id="image-input" accept="image/*" multiple style="margin: 10px;">
+        
+        <div id="media-preview" style="margin-top: 20px; padding: 20px; border: 2px dashed #ccc; border-radius: 10px;">
+            <p>Media preview will appear here...</p>
+            <div id="images-preview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;"></div>
+        </div>
+        
+        <button id="continue-step1" style="display: none; padding: 15px 30px; margin-top: 20px; background: #28a745; color: white; border: none; border-radius: 5px;">
+            Continue to AI Generation
+        </button>
+    </div>
+    
+    <div id="debug-log" style="margin: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; max-height: 300px; overflow-y: auto;">
+        <h3>Debug Log:</h3>
+        <div id="log-content"></div>
+    </div>
+</div>
+
+<script>
+// Debug logging
+function debugLog(message) {
+    const logContent = document.getElementById('log-content');
+    const timestamp = new Date().toLocaleTimeString();
+    logContent.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+    logContent.scrollTop = logContent.scrollHeight;
+    console.log(message);
+}
+
+debugLog('Page loaded, initializing debug wizard...');
+
+class DebugProductWizard {
+    constructor() {
+        debugLog('Debug wizard constructor called');
+        this.uploadedImages = [];
+        this.initEventListeners();
+    }
+    
+    initEventListeners() {
+        debugLog('Setting up event listeners...');
+        
+        const cameraBtn = document.getElementById('camera-btn');
+        const galleryBtn = document.getElementById('gallery-btn');
+        const imageInput = document.getElementById('image-input');
+        const continueBtn = document.getElementById('continue-step1');
+        
+        if (cameraBtn) {
+            cameraBtn.addEventListener('click', () => {
+                debugLog('Camera button clicked');
+                imageInput.setAttribute('capture', 'camera');
+                imageInput.click();
+            });
+            debugLog('Camera button listener added');
+        }
+        
+        if (galleryBtn) {
+            galleryBtn.addEventListener('click', () => {
+                debugLog('Gallery button clicked');
+                imageInput.removeAttribute('capture');
+                imageInput.click();
+            });
+            debugLog('Gallery button listener added');
+        }
+        
+        if (imageInput) {
+            imageInput.addEventListener('change', (e) => {
+                debugLog(`File input changed, ${e.target.files.length} files selected`);
+                this.handleImageUpload(e);
+            });
+            debugLog('Image input listener added');
+        }
+        
+        if (continueBtn) {
+            continueBtn.addEventListener('click', () => {
+                debugLog('Continue button clicked');
+                alert('Step 1 completed! This would proceed to AI generation.');
+            });
+        }
+    }
+    
+    handleImageUpload(event) {
+        const files = Array.from(event.target.files);
+        debugLog(`Processing ${files.length} files...`);
+        
+        files.forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                debugLog(`Processing image ${index + 1}: ${file.name}`);
+                this.convertToBase64(file, (base64) => {
+                    this.uploadedImages.push(base64);
+                    this.updateMediaPreview();
+                    debugLog(`Image ${index + 1} processed and added to preview`);
+                });
+            }
+        });
+    }
+    
+    convertToBase64(file, callback) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            debugLog(`Base64 conversion completed for ${file.name}`);
+            callback(reader.result);
+        };
+        reader.onerror = () => {
+            debugLog(`Error converting ${file.name} to base64`);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    updateMediaPreview() {
+        const imagesPreview = document.getElementById('images-preview');
+        const continueBtn = document.getElementById('continue-step1');
+        
+        imagesPreview.innerHTML = '';
+        
+        this.uploadedImages.forEach((base64, index) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);';
+            
+            div.innerHTML = `
+                <img src="${base64}" alt="Preview ${index + 1}" style="width: 100%; height: 120px; object-fit: cover;">
+                <button onclick="window.debugWizard.removeImage(${index})" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer;">×</button>
+            `;
+            
+            imagesPreview.appendChild(div);
+        });
+        
+        if (this.uploadedImages.length > 0) {
+            continueBtn.style.display = 'block';
+            debugLog(`Media preview updated with ${this.uploadedImages.length} images`);
+        } else {
+            continueBtn.style.display = 'none';
+        }
+    }
+    
+    removeImage(index) {
+        debugLog(`Removing image ${index + 1}`);
+        this.uploadedImages.splice(index, 1);
+        this.updateMediaPreview();
+    }
+}
+
+// Initialize debug wizard
+document.addEventListener('DOMContentLoaded', () => {
+    debugLog('DOM content loaded, initializing debug wizard...');
+    try {
+        window.debugWizard = new DebugProductWizard();
+        debugLog('Debug wizard initialized successfully!');
+    } catch (error) {
+        debugLog(`Error initializing debug wizard: ${error.message}`);
+        console.error(error);
+    }
+});
+</script>
+{% endblock %}

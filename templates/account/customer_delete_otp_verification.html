@@ -1,0 +1,217 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+
+{% block title %}Verify Delete Account{% endblock %}
+
+{% block styles %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+    }
+    .auth-container {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 40px 24px;
+        text-align: center;
+        background-color: #ffffff;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    .back-btn {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        font-size: 24px;
+        color: #1a1a1a;
+        text-decoration: none;
+    }
+    .auth-illustration-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 28vh;
+        margin-top: 20px;
+        margin-bottom: 24px;
+    }
+    .auth-illustration {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .auth-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 12px;
+        line-height: 1.2;
+    }
+    .auth-desc {
+        font-size: 14px;
+        color: #666666;
+        line-height: 1.5;
+        margin-bottom: 32px;
+        padding: 0 10px;
+    }
+    .otp-inputs {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 32px;
+        gap: 20px;
+    }
+    .otp-input {
+        width: 48px;
+        height: 56px;
+        border-radius: 8px;
+        border: none;
+        background-color: #f5f5f5;
+        font-size: 22px;
+        text-align: center;
+        font-weight: 600;
+        color: #1a1a1a;
+        transition: background-color 0.2s, color 0.2s;
+    }
+    .otp-input:focus, .otp-input.filled {
+        outline: none;
+        background-color: #d32f2f;
+        color: #ffffff;
+    }
+    .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 16px;
+        background-color: #d32f2f;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 24px;
+        transition: background-color 0.2s;
+    }
+    .btn-primary:hover {
+        background-color: #b71c1c;
+    }
+    .resend-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+    .resend-text {
+        color: #666666;
+    }
+    .resend-btn {
+        background: none;
+        border: none;
+        color: #d32f2f;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+    }
+    .error-msg {
+        color: #d32f2f;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+    .success-msg {
+        color: #28a745;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <a href="{% url 'customer_menu' %}" class="back-btn">&larr;</a>
+    
+    <div class="auth-illustration-container">
+        <img src="{% static 'images/account/otp_verification.png' %}" alt="OTP Verification" class="auth-illustration">
+    </div>
+    
+    <h1 class="auth-title text-danger">Delete Account</h1>
+    <p class="auth-desc">Verify it's you before permanently deleting your account. Enter the OTP sent to {{ masked_mobile }}</p>
+    
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+    {% if message %}
+    <div class="success-msg">{{ message }}</div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'customer_delete_account' %}" id="otp-form">
+        {% csrf_token %}
+        <div class="otp-inputs">
+            <input type="text" name="otp1" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" onkeyup="moveToNext(this, 'otp2')" autofocus>
+            <input type="text" name="otp2" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" onkeyup="moveToNext(this, 'otp3', 'otp1')">
+            <input type="text" name="otp3" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" onkeyup="moveToNext(this, 'otp4', 'otp2')">
+            <input type="text" name="otp4" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" onkeyup="moveToNext(this, '', 'otp3')">
+        </div>
+        
+        <button type="submit" class="btn-primary">CONFIRM DELETE</button>
+    </form>
+
+    <form method="POST" action="{% url 'customer_delete_account' %}">
+        {% csrf_token %}
+        <input type="hidden" name="resend" value="1">
+        <div class="resend-container">
+            <span class="resend-text">Didn't receive the OTP?</span>
+            <button type="submit" class="resend-btn">RESEND OTP</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function moveToNext(current, nextFieldID, prevFieldID) {
+        if (current.value.length >= 1) {
+            current.classList.add('filled');
+            if (nextFieldID) {
+                document.getElementsByName(nextFieldID)[0].focus();
+            }
+        } else {
+            current.classList.remove('filled');
+            if (prevFieldID) {
+                document.getElementsByName(prevFieldID)[0].focus();
+            }
+        }
+    }
+    
+    document.querySelectorAll('.otp-input').forEach((input, index, inputs) => {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && this.value === '') {
+                let match = this.name.match(/otp(\d)/);
+                if (match) {
+                    let num = parseInt(match[1]);
+                    if (num > 1) {
+                        let prev = document.getElementsByName('otp' + (num - 1))[0];
+                        prev.focus();
+                    }
+                }
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            let pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+            if (pasteData) {
+                for (let i = 0; i < pasteData.length && index + i < inputs.length; i++) {
+                    inputs[index + i].value = pasteData[i];
+                    inputs[index + i].classList.add('filled');
+                    if (index + i + 1 < inputs.length) {
+                        inputs[index + i + 1].focus();
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

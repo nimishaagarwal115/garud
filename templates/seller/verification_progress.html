@@ -1,0 +1,65 @@
+{% extends "base/base_dashboard.html" %}
+{% block title %}Verification Progress{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2 style="color: #b44a1d;">Verification Progress</h2>
+    <p>Please complete all steps to proceed with your onboarding.</p>
+    <div class="card mt-4 shadow-sm">
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <strong>Phone Confirmation</strong>
+                    <span class="badge bg-success">Verified</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <strong>Aadhaar Verification</strong>
+                    {% if gov_details.aadhaar_status == 'VERIFIED' %}
+                        <span class="badge bg-success">Verified</span>
+                    {% else %}
+                        <a href="{% url 'aadhaar_verification' %}" class="btn btn-sm" style="background: #b44a1d; color: white;">Complete</a>
+                    {% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <strong>Annual Income</strong>
+                    {% if gov_details.income_status == 'VERIFIED' %}
+                        <span class="badge bg-success">Verified</span>
+                    {% else %}
+                        <a href="{% url 'annual_income' %}" class="btn btn-sm" style="background: #b44a1d; color: white;">Complete</a>
+                    {% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <strong>Occupation</strong>
+                    {% if gov_details.occupation_status == 'VERIFIED' %}
+                        <span class="badge bg-success">Verified</span>
+                    {% else %}
+                        <a href="{% url 'occupation' %}" class="btn btn-sm" style="background: #b44a1d; color: white;">Complete</a>
+                    {% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <strong>GST Number</strong>
+                    {% if gov_details.gst_status == 'VERIFIED' %}
+                        <span class="badge bg-success">Verified</span>
+                    {% else %}
+                        <a href="{% url 'gst_number' %}" class="btn btn-sm" style="background: #b44a1d; color: white;">Complete</a>
+                    {% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <strong>PAN Card</strong>
+                    {% if gov_details.pan_status == 'VERIFIED' %}
+                        <span class="badge bg-success">Verified</span>
+                    {% else %}
+                        <a href="{% url 'pan_card' %}" class="btn btn-sm" style="background: #b44a1d; color: white;">Complete</a>
+                    {% endif %}
+                </li>
+            </ul>
+
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-lg w-100 mt-3" style="{% if gov_details.overall_status == 'VERIFIED' %}background: #28a745; color: white;{% else %}background: #ccc; color: #666;{% endif %}" {% if gov_details.overall_status != 'VERIFIED' %}disabled{% endif %}>
+                    Complete Verification & Proceed
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,216 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}Profile Settings{% endblock %}
+
+{% block styles %}
+    <style>
+        .profile-settings-menu li {
+            border-bottom: 1px solid #e0e0e0;
+        }
+    </style>
+{% endblock styles %}
+
+{% block content %}
+    <div class="container p-4">
+        <h1 class="page-title notranslate" translate="no" style="margin: 0 0 20px 0; font-size: 24px; font-weight: 500; color: #333;">रूपरेखा</h1>
+        <div class="d-flex align-items-center my-3">
+            {% if request.user.photo %}
+                <img src="{{ request.user.photo.url }}" alt="Profile" class="profile-pic me-3" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+            {% else %}
+                <img src="{% static 'images/account/profile.png' %}" alt="Profile" class="profile-pic me-3" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+            {% endif %}
+            <div>
+                <h6 class="mb-0 notranslate" translate="no" style="font-size: 18px; font-weight: 600;">
+                    {%if profile.full_name %}
+                        {{profile.full_name}}
+                    {% else %}
+                        {{user.mobile }}
+                    {% endif %}
+                </h6>
+                <div style="color: #f39c12; font-size: 14px; margin-top: 5px;">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <span style="color: #666; margin-left: 5px;">(5)</span>
+                </div>
+            </div>
+        </div>
+
+
+
+        <ul class="mb-4 p-0 profile-settings-menu notranslate" translate="no" style="list-style: none;">
+            <li>
+                <a href="{% url 'user_profile_details' %}" class="d-flex justify-content-between align-items-center py-3 text-dark text-decoration-none">
+                    <span style="font-size: 16px;">रूपरेखा सेटिंग</span>
+                    <img src="{% static 'images/dashboard/right_arrow_black.svg' %}" alt="To User Profile Details" style="width: 24px; height: 24px;">
+                </a>
+            </li>
+            
+            <li>
+                <a href="{% url 'language_settings' %}" class="d-flex justify-content-between align-items-center py-3 text-dark text-decoration-none">
+                    <span style="font-size: 16px;">भाषा</span>
+                    <img src="{% static 'images/dashboard/right_arrow_black.svg' %}" alt="To Language Settings" style="width: 24px; height: 24px;">
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'address_settings' %}" class="d-flex justify-content-between align-items-center py-3 text-dark text-decoration-none">
+                    <span style="font-size: 16px;">पता (जोड़े, चेंज करें)</span>
+                    <img src="{% static 'images/dashboard/right_arrow_black.svg' %}" alt="To Address Settings" style="width: 24px; height: 24px;">
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'account_settings' %}" class="d-flex justify-content-between align-items-center py-3 text-dark text-decoration-none">
+                    <span style="font-size: 16px;">खाता सेटिंग</span>
+                    <img src="{% static 'images/dashboard/right_arrow_black.svg' %}" alt="To Account Settings" style="width: 24px; height: 24px;">
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'privacy_policy' %}" class="d-flex justify-content-between align-items-center py-3 text-dark text-decoration-none">
+                    <span style="font-size: 16px;">गोपनीयता नीति</span>
+                    <img src="{% static 'images/dashboard/right_arrow_black.svg' %}" alt="To Privacy Policy" style="width: 24px; height: 24px;">
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'terms_and_conditions' %}" class="d-flex justify-content-between align-items-center py-3 text-dark text-decoration-none">
+                    <span style="font-size: 16px;">सेवा की शर्तें</span>
+                    <img src="{% static 'images/dashboard/right_arrow_black.svg' %}" alt="To Terms and Conditions" style="width: 24px; height: 24px;">
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0)" onclick="showDeleteAccountModal()" class="d-flex justify-content-between align-items-center py-3 text-decoration-none" style="color: #c0392b;">
+                    <span style="font-size: 16px;">खाता हटाएँ</span>
+                    <i class="fas fa-trash-alt" style="font-size: 20px;"></i>
+                </a>
+            </li>
+        </ul>
+
+        <form method="post" action="{% url 'logout' %}" id="logoutForm">
+            {% csrf_token %}
+            <button type="button" class="btn btn-danger w-100 py-3 notranslate" translate="no" onclick="confirmLogout()" style="background-color: #c0392b; border: none; font-size: 16px;">लॉग आउट</button>
+        </form>
+
+        <!-- Delete Account Confirmation Modal -->
+        <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered mx-3 mx-sm-auto">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger">क्या आप अपना खाता हटाना चाहते हैं?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        यह कार्रवाई स्थायी है। आपका खाता, प्रोफ़ाइल, उत्पाद, सूचनाएँ और संबंधित जानकारी हट जाएगी। यह प्रक्रिया वापस नहीं की जा सकती।
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" onclick="sendDeleteAccountOTP()">Delete Account</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OTP Verification Modal -->
+        <div class="modal fade" id="otpVerificationModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered mx-3 mx-sm-auto">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">OTP दर्ज करें</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>कृपया अपने पंजीकृत मोबाइल नंबर पर भेजा गया OTP दर्ज करें।</p>
+                        <input type="text" id="deleteAccountOtpInput" class="form-control" placeholder="Enter OTP" maxlength="6">
+                        <div id="otpErrorMsg" class="text-danger mt-2" style="display: none;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" onclick="verifyDeleteAccountOTP()">Verify & Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block dashboard_script %}
+{{ block.super }}
+<script>
+    function confirmLogout() {
+        if (confirm("क्या आप वाकई लॉग आउट करना चाहते हैं? (Are you sure you want to log out?)")) {
+            document.getElementById('logoutForm').submit();
+        }
+    }
+
+    function showDeleteAccountModal() {
+        var modal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
+        modal.show();
+    }
+
+    function sendDeleteAccountOTP() {
+        var deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteAccountModal'));
+        if (deleteModal) deleteModal.hide();
+
+        fetch("{% url 'get-otp' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                'device': '{{ user.mobile }}',
+                'purpose': 'delete_account'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error sending OTP: ' + data.error);
+            } else {
+                var otpModal = new bootstrap.Modal(document.getElementById('otpVerificationModal'));
+                otpModal.show();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to send OTP.');
+        });
+    }
+
+    function verifyDeleteAccountOTP() {
+        var otp = document.getElementById('deleteAccountOtpInput').value;
+        if (!otp) {
+            document.getElementById('otpErrorMsg').innerText = 'Please enter OTP.';
+            document.getElementById('otpErrorMsg').style.display = 'block';
+            return;
+        }
+
+        fetch("{% url 'delete-account' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                'otp': otp
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('otpErrorMsg').innerText = data.error;
+                document.getElementById('otpErrorMsg').style.display = 'block';
+            } else {
+                alert('आपका खाता सफलतापूर्वक हटा दिया गया है।');
+                window.location.href = "{% url 'role_selection' %}"; 
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('otpErrorMsg').innerText = 'Failed to verify OTP.';
+            document.getElementById('otpErrorMsg').style.display = 'block';
+        });
+    }
+</script>
+{% endblock dashboard_script %}

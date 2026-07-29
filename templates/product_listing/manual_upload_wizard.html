@@ -1,0 +1,619 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}स्वयं उत्पाद जोड़ें{% endblock %}
+
+{% block css_files %}
+<link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/footer.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: #ffffff; font-family: Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    
+    .top-bar { display: flex; align-items: center; padding: 20px; background: white; }
+    .back-btn { font-size: 24px; text-decoration: none; color: #333; margin-right: 15px; }
+    .top-title { font-size: 20px; font-weight: 500; color: #333; margin: 0; }
+    
+    .stepper-container { display: flex; justify-content: center; align-items: center; margin: 20px 0 30px; position: relative; }
+    .step-line { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 220px; height: 1px; border-bottom: 2px dotted #B43E24; z-index: 1; }
+    .step-circles { display: flex; gap: 20px; z-index: 2; position: relative; }
+    .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: 500; background: #FDE8E4; color: #B43E24; }
+    .step-circle.active { background: #B43E24; color: white; }
+    .step-circle.completed { background: #B43E24; color: white; }
+    
+    .form-container { padding: 0 20px; }
+    .form-label { display: block; color: #333; margin-bottom: 8px; font-size: 14px; }
+    .input-wrapper { position: relative; margin-bottom: 20px; }
+    .form-input { width: 100%; padding: 12px 40px 12px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; color: #333; }
+    textarea.form-input { min-height: 120px; resize: none; padding-right: 40px; }
+    .clear-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #999; cursor: pointer; font-size: 18px; }
+    textarea + .clear-icon { top: 20px; transform: none; }
+    
+    .buttons-row { display: flex; gap: 15px; margin-bottom: 40px; }
+    .btn-speak { background: #F6A93B; color: #000; flex: 1; padding: 15px; border-radius: 4px; border: none; font-size: 16px; font-weight: 500; text-align: center; }
+    .btn-next { background: #B43E24; color: #fff; flex: 1; padding: 15px; border-radius: 4px; border: none; font-size: 16px; font-weight: 500; text-align: center; }
+    
+    .mic-section { display: flex; flex-direction: column; align-items: center; margin-top: 40px; margin-bottom: 80px; }
+    .mic-icon-wrapper { position: relative; cursor: pointer; width: 100px; height: 100px; border-radius: 50%; display: flex; justify-content: center; align-items: center; background-color: #B43E24; }
+    .mic-icon-wrapper i { font-size: 2.5rem; color: white; }
+    .mic-text { font-size: 18px; color: #333; text-align: center; margin-top: 20px; }
+
+    /* Media Upload Specific CSS */
+    .media-preview-container { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+    .media-item { position: relative; width: 100px; height: 100px; border-radius: 8px; overflow: hidden; background: #e0e0e0; }
+    .media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; }
+    .media-item .remove-btn { position: absolute; top: 4px; right: 4px; background: rgba(255,255,255,0.9); color: #b73e25; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); line-height: 1; }
+    
+    .screen-container { display: none; padding-bottom: 100px; }
+    .screen-container.active { display: block; }
+    
+    /* Loading Animation */
+    .loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 75vh; width: 100%; text-align: center; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .glowing-ring { width: 220px; height: 220px; border-radius: 50%; box-shadow: 0 0 0 4px #F6A93B, 0 0 40px 15px rgba(246, 169, 59, 0.4); display: flex; justify-content: center; align-items: center; background: white; margin-bottom: 50px; }
+    .glowing-ring img { width: 130px; animation: spin 3s linear infinite; }
+
+    .success-icon { display: block; margin: 0 auto 24px auto; width: 200px; height: auto; object-fit: contain; }
+    
+    #screen-success.active {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 75vh;
+        width: 100%;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block All_Content %}
+{% include "components/header.html" %}
+
+<div id="wizard-form">
+    
+    <!-- STEP 1: TITLE -->
+    <div id="step-1" class="screen-container active">
+        <div class="top-bar">
+            <a href="#" class="back-btn" onclick="handleBack(1); return false;"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="top-title notranslate" translate="no">शीर्षक</h4>
+        </div>
+        
+        <div class="stepper-container">
+            <div class="step-line"></div>
+            <div class="step-circles">
+                <div class="step-circle active">1</div>
+                <div class="step-circle">2</div>
+                <div class="step-circle">3</div>
+                <div class="step-circle">4</div>
+                <div class="step-circle">5</div>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <label class="form-label notranslate" translate="no">उत्पाद का शीर्षक</label>
+            <div class="input-wrapper">
+                <input type="text" id="field-title" class="form-input notranslate" translate="no">
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-title').value=''"></i>
+            </div>
+            <span id="error-title" style="color: #B43E24; font-size: 14px; display: none; margin-bottom: 20px; display: none;" class="notranslate" translate="no">कृपया उत्पाद का शीर्षक दर्ज करें।</span>
+            
+            <div class="buttons-row">
+                <button type="button" class="btn-speak notranslate" translate="no" onclick="triggerVoice(1)">वापस बोलें</button>
+                <button type="button" class="btn-next notranslate" translate="no" onclick="nextStep(2)">आगे बढ़ें</button>
+            </div>
+            
+            <div class="mic-section">
+                <div class="mic-icon-wrapper" id="mic-btn-1" onclick="triggerVoice(1)">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <div class="mic-text notranslate" translate="no">अपने उत्पाद का शीर्षक बताएं</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- STEP 2: DESCRIPTION -->
+    <div id="step-2" class="screen-container">
+        <div class="top-bar">
+            <a href="#" class="back-btn" onclick="handleBack(2); return false;"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="top-title notranslate" translate="no">विवरण</h4>
+        </div>
+        
+        <div class="stepper-container">
+            <div class="step-line"></div>
+            <div class="step-circles">
+                <div class="step-circle completed">1</div>
+                <div class="step-circle active">2</div>
+                <div class="step-circle">3</div>
+                <div class="step-circle">4</div>
+                <div class="step-circle">5</div>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <label class="form-label notranslate" translate="no">उत्पाद का विवरण</label>
+            <div class="input-wrapper">
+                <textarea id="field-desc" class="form-input notranslate" translate="no"></textarea>
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-desc').value=''"></i>
+            </div>
+            
+            <div class="buttons-row">
+                <button type="button" class="btn-speak notranslate" translate="no" onclick="triggerVoice(2)">वापस बोलें</button>
+                <button type="button" class="btn-next notranslate" translate="no" onclick="nextStep(3)">आगे बढ़ें</button>
+            </div>
+            
+            <div class="mic-section">
+                <div class="mic-icon-wrapper" id="mic-btn-2" onclick="triggerVoice(2)">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <div class="mic-text notranslate" translate="no">अपने उत्पाद का विवरण बताएं</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- STEP 3: MEDIA -->
+    <div id="step-3" class="screen-container">
+        <div class="top-bar">
+            <a href="#" class="back-btn" onclick="handleBack(3); return false;"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="top-title notranslate" translate="no">फोटो और वीडियो</h4>
+        </div>
+        
+        <div class="stepper-container">
+            <div class="step-line"></div>
+            <div class="step-circles">
+                <div class="step-circle completed">1</div>
+                <div class="step-circle completed">2</div>
+                <div class="step-circle active">3</div>
+                <div class="step-circle">4</div>
+                <div class="step-circle">5</div>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <label class="form-label notranslate" translate="no" style="margin-bottom: 20px;">उत्पाद की फोटो (तस्वीर) और वीडियो</label>
+            
+            <div id="media-preview-area" class="media-preview-container"></div>
+            
+            <div class="buttons-row">
+                <button type="button" class="btn-speak notranslate" translate="no" onclick="document.getElementById('native-photo-capture').click()">
+                    <i class="fas fa-camera"></i> तस्वीर खींचें
+                </button>
+                <button type="button" class="btn-next notranslate" translate="no" onclick="document.getElementById('native-photo-upload').click()">
+                    <i class="fas fa-image"></i> तस्वीर चुनें
+                </button>
+            </div>
+            <div class="buttons-row">
+                <button type="button" class="btn-speak notranslate" translate="no" onclick="document.getElementById('native-video-capture').click()">
+                    <i class="fas fa-video"></i> वीडियो बनाएं
+                </button>
+                <button type="button" class="btn-next notranslate" translate="no" onclick="document.getElementById('native-video-upload').click()">
+                    <i class="fas fa-film"></i> वीडियो चुनें
+                </button>
+            </div>
+            <div class="buttons-row">
+                <button type="button" class="btn-speak notranslate" translate="no" onclick="handleBack(3)">वापस</button>
+                <button type="button" class="btn-next notranslate" translate="no" onclick="nextStep(4)">आगे बढ़ें</button>
+            </div>
+            
+            <div class="mic-section">
+                <div class="mic-icon-wrapper" id="mic-btn-3">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <div class="mic-text notranslate" translate="no">अपने उत्पाद की फोटो (तस्वीर) और वीडियो डालें</div>
+            </div>
+            
+            <input type="file" id="native-photo-capture" accept="image/*;capture=camera" capture="environment" style="position:absolute; left:-9999px; opacity:0;" onchange="handleMediaUpload(this)">
+            <input type="file" id="native-photo-upload" accept="image/*" multiple style="position:absolute; left:-9999px; opacity:0;" onchange="handleMediaUpload(this)">
+            <input type="file" id="native-video-capture" accept="video/*;capture=camcorder" capture="environment" style="position:absolute; left:-9999px; opacity:0;" onchange="handleMediaUpload(this)">
+            <input type="file" id="native-video-upload" accept="video/*" multiple style="position:absolute; left:-9999px; opacity:0;" onchange="handleMediaUpload(this)">
+        </div>
+    </div>
+    
+    <!-- STEP 4: QUANTITY -->
+    <div id="step-4" class="screen-container">
+        <div class="top-bar">
+            <a href="#" class="back-btn" onclick="handleBack(4); return false;"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="top-title notranslate" translate="no">मात्रा</h4>
+        </div>
+        
+        <div class="stepper-container">
+            <div class="step-line"></div>
+            <div class="step-circles">
+                <div class="step-circle completed">1</div>
+                <div class="step-circle completed">2</div>
+                <div class="step-circle completed">3</div>
+                <div class="step-circle active">4</div>
+                <div class="step-circle">5</div>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <label class="form-label notranslate" translate="no">उत्पाद की मात्रा</label>
+            <div class="input-wrapper">
+                <input type="number" id="field-qty" class="form-input notranslate" translate="no">
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-qty').value=''"></i>
+            </div>
+            
+            <div class="buttons-row">
+                <button type="button" class="btn-speak notranslate" translate="no" onclick="triggerVoice(4)">वापस बोलें</button>
+                <button type="button" class="btn-next notranslate" translate="no" onclick="nextStep(5)">आगे बढ़ें</button>
+            </div>
+            
+            <div class="mic-section">
+                <div class="mic-icon-wrapper" id="mic-btn-4" onclick="triggerVoice(4)">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <div class="mic-text notranslate" translate="no">अपने उत्पाद की मात्रा बताएं</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- STEP 5: PRICE -->
+    <div id="step-5" class="screen-container">
+        <div class="top-bar">
+            <a href="#" class="back-btn" onclick="handleBack(5); return false;"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="top-title notranslate" translate="no">मूल्य</h4>
+        </div>
+        
+        <div class="stepper-container">
+            <div class="step-line"></div>
+            <div class="step-circles">
+                <div class="step-circle completed">1</div>
+                <div class="step-circle completed">2</div>
+                <div class="step-circle completed">3</div>
+                <div class="step-circle completed">4</div>
+                <div class="step-circle active">5</div>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <label class="form-label notranslate" translate="no">ऑफर</label>
+            <div class="input-wrapper">
+                <input type="text" id="field-offer" class="form-input notranslate" translate="no">
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-offer').value=''"></i>
+            </div>
+            
+            <label class="form-label notranslate" translate="no">मूल्य</label>
+            <div class="input-wrapper">
+                <input type="number" id="field-price" class="form-input notranslate" translate="no">
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-price').value=''"></i>
+            </div>
+            
+            <div class="buttons-row">
+                <button type="button" class="btn-speak notranslate" translate="no" onclick="triggerVoice(5)">वापस बोलें</button>
+                <button type="button" class="btn-next notranslate" translate="no" onclick="nextStep(6)">आगे बढ़ें</button>
+            </div>
+            
+            <div class="mic-section">
+                <div class="mic-icon-wrapper" id="mic-btn-5" onclick="triggerVoice(5)">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <div class="mic-text notranslate" translate="no">अपने उत्पाद पर ऑफर और मूल्य बताएं</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 6: REVIEW -->
+    <div id="step-6" class="screen-container">
+        <div class="top-bar">
+            <a href="#" class="back-btn" onclick="handleBack(6); return false;"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="top-title notranslate" translate="no">समीक्षा</h4>
+        </div>
+        
+        <div class="stepper-container">
+            <div class="step-line"></div>
+            <div class="step-circles">
+                <div class="step-circle completed">1</div>
+                <div class="step-circle completed">2</div>
+                <div class="step-circle completed">3</div>
+                <div class="step-circle completed">4</div>
+                <div class="step-circle completed">5</div>
+            </div>
+        </div>
+        
+        <div class="form-container" style="padding-bottom: 20px;">
+            <label class="form-label notranslate" translate="no">उत्पाद का शीर्षक</label>
+            <div class="input-wrapper">
+                <input type="text" id="review-field-title" class="form-input notranslate" translate="no" onchange="syncReviewFields()" onkeyup="syncReviewFields()">
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('review-field-title').value=''; syncReviewFields()"></i>
+            </div>
+            
+            <label class="form-label notranslate" translate="no">उत्पाद का विवरण</label>
+            <div class="input-wrapper">
+                <textarea id="review-field-desc" class="form-input notranslate" translate="no" onchange="syncReviewFields()" onkeyup="syncReviewFields()"></textarea>
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('review-field-desc').value=''; syncReviewFields()"></i>
+            </div>
+            
+            <label class="form-label notranslate" translate="no" style="margin-bottom: 20px;">उत्पाद की फोटो (तस्वीर) और वीडियो</label>
+            <div id="review-media-preview-area" class="media-preview-container"></div>
+            
+            <!-- Media upload buttons removed from review page as per instructions -->
+            
+            <label class="form-label notranslate" translate="no">उत्पाद की मात्रा</label>
+            <div class="input-wrapper">
+                <input type="number" id="review-field-qty" class="form-input notranslate" translate="no" onchange="syncReviewFields()" onkeyup="syncReviewFields()">
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('review-field-qty').value=''; syncReviewFields()"></i>
+            </div>
+            
+            <label class="form-label notranslate" translate="no">ऑफर</label>
+            <div class="input-wrapper">
+                <input type="text" id="review-field-offer" class="form-input notranslate" translate="no" onchange="syncReviewFields()" onkeyup="syncReviewFields()">
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('review-field-offer').value=''; syncReviewFields()"></i>
+            </div>
+            
+            <label class="form-label notranslate" translate="no">मूल्य</label>
+            <div class="input-wrapper">
+                <input type="number" id="review-field-price" class="form-input notranslate" translate="no" onchange="syncReviewFields()" onkeyup="syncReviewFields()">
+                <i class="far fa-times-circle clear-icon" onclick="document.getElementById('review-field-price').value=''; syncReviewFields()"></i>
+            </div>
+            
+            <div class="buttons-row" style="margin-top: 40px; margin-bottom: 40px;">
+                <button type="button" class="btn-next notranslate" translate="no" onclick="submitForm()" style="width: 100%;">उत्पाद प्रकाशित करें</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LOADING SCREEN -->
+<div id="screen-loading" class="screen-container">
+    <div class="loading-screen">
+        <div class="glowing-ring">
+            <img src="{% static 'images/favicon/app-icon-android-adaptive-foreground-1.png' %}" alt="Garud Logo">
+        </div>
+        <p style="color: #666; font-size: 16px; max-width: 280px; line-height: 1.5; text-align: center;" class="notranslate" translate="no">
+            कृपया थोड़ी देर प्रतीक्षा करें, उत्पाद का डेटा सेव किया जा रहा है
+        </p>
+    </div>
+</div>
+
+<!-- SUCCESS SCREEN -->
+<div id="screen-success" class="screen-container">
+    <img src="{% static 'images/account/success.png' %}" alt="Success" class="success-icon">
+    <h2 style="color: #333; font-size: 24px; text-align: center; margin-bottom: 10px;" class="notranslate" translate="no">उत्पाद जुड़ गया!</h2>
+    <p style="color: #666; text-align: center; font-size: 16px;" class="notranslate" translate="no">आपका उत्पाद सफलतापूर्वक जोड़ दिया गया है</p>
+</div>
+
+<!-- DISCARD DRAFT MODAL -->
+<div id="discard-modal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: white; width: 90%; max-width: 400px; border-radius: 12px; padding: 25px; text-align: center;">
+        <h3 style="margin-bottom: 20px; font-size: 18px; color: #333;" class="notranslate" translate="no">क्या आप इस उत्पाद का ड्राफ्ट छोड़ना चाहते हैं?</h3>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="document.getElementById('discard-modal').style.display='none'" style="flex: 1; padding: 12px; border: 1px solid #ddd; background: white; border-radius: 6px; font-weight: 500; color: #333;" class="notranslate" translate="no">संपादन जारी रखें</button>
+            <button onclick="window.location.href='{% url 'product_selection' %}'" style="flex: 1; padding: 12px; border: none; background: #B43E24; border-radius: 6px; font-weight: 500; color: white;" class="notranslate" translate="no">छोड़ें</button>
+        </div>
+    </div>
+</div>
+
+{% include "components/footer.html" %}
+{% endblock %}
+
+{% block dashboard_script %}
+<script src="{% static 'js/voice/GarudNumberParser.js' %}?v=4.0"></script>
+<script src="{% static 'js/voice/GarudVoice.js' %}?v=4.0"></script>
+<script>
+    let uploadedImages = [];
+    let uploadedVideos = [];
+    
+    window.nextStep = function(step) {
+        if (step === 2) {
+            const title = document.getElementById('field-title').value.trim();
+            if (!title) {
+                document.getElementById('error-title').style.display = 'block';
+                return;
+            }
+            document.getElementById('error-title').style.display = 'none';
+            sessionStorage.setItem('manual_product_title', title);
+        }
+        
+        if (step === 3 && !document.getElementById('field-desc').value.trim()) {
+            alert("कृपया विवरण दर्ज करें।"); return;
+        }
+        if (step === 4 && uploadedImages.length === 0 && uploadedVideos.length === 0) {
+            alert("कृपया कम से कम एक फोटो या वीडियो अपलोड करें।"); return;
+        }
+        if (step === 5 && !document.getElementById('field-qty').value.trim()) {
+            alert("कृपया मात्रा दर्ज करें।"); return;
+        }
+        
+        if (step === 6 && !document.getElementById('field-price').value.trim()) {
+            alert("कृपया मूल्य दर्ज करें।"); return;
+        }
+        
+        document.querySelectorAll('.screen-container').forEach(el => el.classList.remove('active'));
+        document.getElementById('step-' + step).classList.add('active');
+        
+        if (step === 6) {
+            document.getElementById('review-field-title').value = document.getElementById('field-title').value;
+            document.getElementById('review-field-desc').value = document.getElementById('field-desc').value;
+            document.getElementById('review-field-qty').value = document.getElementById('field-qty').value;
+            document.getElementById('review-field-offer').value = document.getElementById('field-offer').value;
+            document.getElementById('review-field-price').value = document.getElementById('field-price').value;
+        }
+        
+        if (window.GarudVoice) {
+            window.GarudVoice.stop();
+        }
+        
+        // Auto trigger voice prompt based on step
+        if (window.GarudVoice) {
+            let field = "";
+            let btn = "mic-btn-" + step;
+            if(step === 2) { field = "field-desc"; }
+            if(step === 3) { field = ""; } // no field to fill
+            if(step === 4) { field = "field-qty"; }
+            if(step === 5) { field = "field-price"; }
+            
+            if(field || step === 3) {
+                // Short timeout to allow transition
+                setTimeout(() => {
+                    if (step !== 3 && step !== 6) {
+                        window.GarudVoice.start(field, btn, null, 'text');
+                    }
+                }, 500);
+            }
+        }
+    }
+    
+    window.syncReviewFields = function() {
+        document.getElementById('field-title').value = document.getElementById('review-field-title').value;
+        document.getElementById('field-desc').value = document.getElementById('review-field-desc').value;
+        document.getElementById('field-qty').value = document.getElementById('review-field-qty').value;
+        document.getElementById('field-offer').value = document.getElementById('review-field-offer').value;
+        document.getElementById('field-price').value = document.getElementById('review-field-price').value;
+    }
+    
+    window.handleBack = function(step) {
+        if (step === 1) {
+            document.getElementById('discard-modal').style.display = 'flex';
+        } else {
+            document.querySelectorAll('.screen-container').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-' + (step - 1)).classList.add('active');
+            if (window.GarudVoice) window.GarudVoice.stop();
+        }
+    }
+    
+    window.triggerVoice = function(step) {
+        if (window.GarudVoice) {
+            window.GarudVoice.stop(); // Clear current session
+            
+            setTimeout(() => {
+                let field = "";
+                let type = 'text';
+                if(step === 1) { field = "field-title"; }
+                if(step === 2) { field = "field-desc"; }
+                if(step === 4) { field = "field-qty"; type = 'number'; }
+                if(step === 5) { field = "field-price"; type = 'number'; }
+                
+                if(field) {
+                    window.GarudVoice.start(field, 'mic-btn-' + step, null, type);
+                }
+            }, 100);
+        }
+    }
+    
+    window.handleMediaUpload = function(input) {
+        if (!input.files || input.files.length === 0) return;
+        
+        const previewArea = document.getElementById('media-preview-area');
+        
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                const isVideo = file.type.startsWith('video/');
+                
+                if (isVideo) {
+                    uploadedVideos.push(base64);
+                } else {
+                    uploadedImages.push(base64);
+                }
+                
+                renderMediaPreview();
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        input.value = ''; // clear
+    }
+    
+    window.removeMedia = function(index, type) {
+        if (type === 'image') {
+            uploadedImages.splice(index, 1);
+        } else {
+            uploadedVideos.splice(index, 1);
+        }
+        renderMediaPreview();
+    }
+    
+    function renderMediaPreview() {
+        const previewArea = document.getElementById('media-preview-area');
+        const reviewPreviewArea = document.getElementById('review-media-preview-area');
+        
+        let html = '';
+        
+        uploadedImages.forEach((img, i) => {
+            html += `
+                <div class="media-item">
+                    <img src="${img}" alt="Preview">
+                    <button type="button" class="remove-btn" onclick="removeMedia(${i}, 'image')">×</button>
+                </div>
+            `;
+        });
+        
+        uploadedVideos.forEach((vid, i) => {
+            html += `
+                <div class="media-item">
+                    <video src="${vid}"></video>
+                    <button type="button" class="remove-btn" onclick="removeMedia(${i}, 'video')">×</button>
+                </div>
+            `;
+        });
+        
+        if (previewArea) previewArea.innerHTML = html;
+        if (reviewPreviewArea) reviewPreviewArea.innerHTML = html;
+    }
+    
+    window.submitForm = function() {
+        if (!document.getElementById('field-price').value.trim()) {
+            alert("कृपया मूल्य दर्ज करें।"); return;
+        }
+        
+        document.querySelectorAll('.screen-container').forEach(el => el.classList.remove('active'));
+        document.getElementById('screen-loading').classList.add('active');
+        
+        let formData = new FormData();
+        formData.append('name', document.getElementById('field-title').value);
+        formData.append('description', document.getElementById('field-desc').value);
+        formData.append('quantity', document.getElementById('field-qty').value);
+        formData.append('price', document.getElementById('field-price').value);
+        formData.append('offer', document.getElementById('field-offer').value);
+        
+        // Default Category (Usually 1 is General or Uncategorized, handle in backend if none)
+        formData.append('category', '1');
+        
+        uploadedImages.forEach(img => formData.append('images[]', img));
+        uploadedVideos.forEach(vid => formData.append('videos[]', vid));
+        
+        fetch("{% url 'manual_upload_wizard' %}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('screen-loading').classList.remove('active');
+                document.getElementById('screen-success').classList.add('active');
+                
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 2000);
+            } else {
+                alert("Error: " + data.error);
+                document.getElementById('screen-loading').classList.remove('active');
+                document.getElementById('step-6').classList.add('active');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Network error. Please try again.");
+            document.getElementById('screen-loading').classList.remove('active');
+            document.getElementById('step-5').classList.add('active');
+        });
+    }
+    
+    // Start Step 1 voice on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTitle = sessionStorage.getItem('manual_product_title');
+        if (savedTitle) {
+            document.getElementById('field-title').value = savedTitle;
+        }
+        
+        setTimeout(() => {
+            if (window.GarudVoice) {
+                window.GarudVoice.start('field-title', 'mic-btn-1', null, 'text');
+            }
+        }, 1000);
+    });
+</script>
+{% endblock %}

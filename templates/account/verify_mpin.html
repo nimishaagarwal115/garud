@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verify MPIN</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f6fb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      width: 300px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    input[type="password"] {
+      font-size: 24px;
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      text-align: center;
+      letter-spacing: 10px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      font-size: 18px;
+      background: #9b2c2c;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #222;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Enter Your MPIN</h2>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="error">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.mpin }}
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+</body>
+</html>

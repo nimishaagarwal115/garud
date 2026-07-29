@@ -1,0 +1,46 @@
+body {
+    background-color: #f6f8fb;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.language-icon {
+    width: 80px;
+    margin-bottom: 20px;
+}
+
+.language-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.language-subtext {
+    font-size: 15px;
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+
+.language-option {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 15px;
+    border: 2px solid #e3e6ed;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.language-option input[type="radio"] {
+    margin-right: 12px;
+}
+
+.language-label {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#language-section {
+    max-width: 425px;
+    margin: 0 auto;
+    padding: 80px 30px;
+}

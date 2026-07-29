@@ -1,0 +1,284 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}Product Upload Wizard{% endblock %}
+
+{% block css_files %}
+<link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/footer.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    /* Reset and normalize */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: #ffffff; font-family: Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    
+    .top-bar { display: flex; align-items: center; padding: 20px; background: white; }
+    .back-btn { font-size: 24px; text-decoration: none; color: #333; margin-right: 15px; }
+    .top-title { font-size: 20px; font-weight: 500; color: #333; margin: 0; }
+    .sub-text { font-size: 14px; color: #666; margin-left: 20px; margin-bottom: 20px; }
+    
+    /* Media Preview */
+    .media-preview-container { 
+        display: flex; overflow-x: auto; gap: 15px; padding: 0 20px 15px 20px; 
+        align-items: center; min-height: 110px; margin-bottom: 20px; 
+    }
+    .media-item { 
+        position: relative; width: 100px; height: 100px; min-width: 100px; 
+        border-radius: 8px; overflow: hidden; background: #e0e0e0; 
+    }
+    .media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; }
+    .media-item .remove-btn { 
+        position: absolute; top: 4px; right: 4px; background: rgba(255,255,255,0.9); 
+        color: #b73e25; border: none; border-radius: 50%; width: 24px; height: 24px; 
+        cursor: pointer; font-size: 16px; display: flex; align-items: center; 
+        justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); line-height: 1; 
+    }
+    .video-indicator { 
+        position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.6); 
+        color: white; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 500; 
+    }
+    .play-icon { 
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+        color: rgba(255,255,255,0.9); font-size: 28px; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); 
+    }
+    .add-more-tile { 
+        width: 100px; height: 100px; min-width: 100px; border: 2px dashed #ccc; 
+        border-radius: 8px; display: flex; justify-content: center; align-items: center; 
+        cursor: pointer; background: #f0f0f0; font-size: 30px; color: #333; 
+    }
+    
+    /* Center Mic */
+    .mic-container { display: flex; justify-content: center; margin: 40px 0; }
+    .big-mic { 
+        background: #B43E24; color: white; width: 140px; height: 140px; 
+        border-radius: 50%; font-size: 60px; border: none; 
+        display: flex; justify-content: center; align-items: center; 
+    }
+    .big-mic svg { width: 60px; height: 60px; fill: none; stroke: white; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    
+    /* Helpers */
+    .helper-text { text-align: center; color: #333; font-size: 18px; margin-bottom: 30px; padding: 0 20px; }
+    .proceed-btn { 
+        background: #B43E24; color: white; width: calc(100% - 40px); margin: 0 20px; 
+        padding: 15px; font-size: 16px; border-radius: 4px; border: none; font-weight: 500; 
+        text-align: center; display: block; opacity: 1; transition: opacity 0.3s; 
+    }
+    .proceed-btn:disabled { opacity: 0.5; }
+    
+    /* Screen 1 Buttons */
+    .screen1-buttons { display: flex; gap: 15px; padding: 0 20px; margin-top: 120px; }
+    .btn-photo { background: #F6A93B; color: #000; flex: 1; padding: 15px; border-radius: 4px; border: none; font-size: 16px; font-weight: 500; display: flex; justify-content: center; align-items: center; gap: 10px; }
+    .btn-video { background: #B43E24; color: #fff; flex: 1; padding: 15px; border-radius: 4px; border: none; font-size: 16px; font-weight: 500; display: flex; justify-content: center; align-items: center; gap: 10px; }
+    
+    /* Loading Animation */
+    .loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 75vh; width: 100%; text-align: center; }
+    
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    
+    .glowing-ring { 
+        width: 220px; height: 220px; border-radius: 50%; 
+        box-shadow: 0 0 0 4px #F6A93B, 0 0 40px 15px rgba(246, 169, 59, 0.4); 
+        display: flex; justify-content: center; align-items: center;
+        background: white; margin-bottom: 50px; 
+    }
+    .glowing-ring img { 
+        width: 130px; 
+        animation: spin 3s linear infinite;
+    }
+    
+    /* Form Fields */
+    .form-container { padding: 0 20px; margin-top: 20px; padding-bottom: 100px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; color: #555; margin-bottom: 8px; font-size: 14px; }
+    .input-wrapper { position: relative; }
+    .form-input { 
+        width: 100%; padding: 12px 40px 12px 15px; border: 1px solid #ddd; 
+        border-radius: 4px; font-size: 16px; color: #333; 
+    }
+    textarea.form-input { min-height: 120px; resize: none; padding-right: 40px; }
+    .clear-icon { 
+        position: absolute; right: 15px; top: 50%; transform: translateY(-50%); 
+        color: #999; cursor: pointer; font-size: 18px; 
+    }
+    textarea + .clear-icon { top: 20px; transform: none; }
+    
+    /* Success Screen */
+    .success-icon { display: block; margin: 60px auto 30px auto; width: 150px; }
+    
+    /* Mobile Native Bottom Sheet */
+    #media-options-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: flex-end; justify-content: center; }
+    .bottom-sheet { background: white; width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 25px 20px 40px 20px; animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    
+    .sheet-option-btn { 
+        width: 100%; padding: 18px; border-radius: 12px; display: flex; align-items: center; 
+        gap: 15px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: 500; 
+        font-size: 16px; color: #333; margin-bottom: 12px; cursor: pointer; text-align: left;
+    }
+    .sheet-option-btn:last-child { margin-bottom: 0; }
+    .sheet-icon { font-size: 24px; width: 32px; text-align: center; }
+</style>
+{% endblock %}
+
+{% block All_Content %}
+{% include "components/header.html" %}
+
+<div id="app-screens">
+    <!-- SCREEN 1 & 2: MEDIA UPLOAD -->
+    <div id="screen-media" style="display: block; padding-bottom: 100px;">
+        <div class="top-bar">
+            <a href="{% url 'product_selection' %}" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="top-title notranslate" translate="no">फोटो और वीडियो</h4>
+        </div>
+        
+        <!-- Shown only when media is selected (Screen 2) -->
+        <p class="sub-text notranslate" translate="no" id="media-subtext" style="display: none;">उत्पाद की फोटो (तस्वीर) और वीडियो</p>
+        
+        <div id="media-preview" class="media-preview-container" style="display: none;">
+            <!-- Thumbnails injected via JS -->
+            <div id="add-more-tile" class="add-more-tile">
+                <i class="fas fa-plus"></i>
+            </div>
+        </div>
+
+        <div class="mic-container">
+            <button type="button" class="big-mic">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="22"></line>
+                    <line x1="8" y1="22" x2="16" y2="22"></line>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Screen 1 empty state content -->
+        <div id="screen1-empty-content">
+            <p class="helper-text notranslate" translate="no" style="margin-bottom: 60px;">अपने उत्पाद की फोटो या वीडियो जोड़ने के लिए नीचे दिए गए बटन पर क्लिक करें।</p>
+            <div class="screen1-buttons">
+                <button type="button" id="btn-show-options-photo" class="btn-photo notranslate" translate="no">
+                    <i class="fas fa-camera"></i> फोटो
+                </button>
+                <button type="button" id="btn-show-options-video" class="btn-video notranslate" translate="no">
+                    <i class="fas fa-video"></i> वीडियो
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 2 media selected content -->
+        <div id="screen2-media-content" style="display: none;">
+            <p class="helper-text notranslate" translate="no">
+                ओर फोटो वीडियो खेंचने के लिए प्लस पर क्लिक करें अन्यथा आगे बढे
+            </p>
+            <button type="button" id="proceed-to-ai" class="proceed-btn notranslate" translate="no" disabled>
+                आगे बढे
+            </button>
+        </div>
+
+        <!-- Native file inputs -->
+        <input type="file" id="input-native-photo" accept="image/*" style="display: none;">
+        <input type="file" id="input-native-video" accept="video/*" style="display: none;">
+        <!-- Input for adding both when clicking + -->
+        <input type="file" id="input-native-any" accept="image/*,video/*" style="display: none;">
+        
+        
+        </div>
+    </div>
+
+    <!-- SCREEN 3: AI PROCESSING -->
+    <div id="screen-loading" style="display: none; padding-bottom: 100px;">
+        <div class="loading-screen">
+            <div class="glowing-ring">
+                <!-- Use high res logo for spinning animation -->
+                <img src="{% static 'images/favicon/app-icon-android-adaptive-foreground-1.png' %}" alt="Garud Logo">
+            </div>
+            <p style="color: #666; font-size: 16px; max-width: 280px; line-height: 1.5; text-align: center;" class="notranslate" translate="no">
+                कृपया थोड़ी देर प्रतीक्षा करें, उत्पाद का डेटा तैयार किया जा रहा है
+            </p>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: GENERATED DETAILS -->
+    <div id="screen-details" style="display: none;">
+        <div class="top-bar">
+            <a href="#" id="back-to-media" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="top-title notranslate" translate="no">फोटो और वीडियो</h4>
+        </div>
+        <p class="sub-text notranslate" translate="no">उत्पाद की फोटो (तस्वीर) और वीडियो</p>
+        
+        <div id="details-media-preview" class="media-preview-container">
+            <!-- Thumbnails injected via JS -->
+        </div>
+        
+        <form id="product-details-form" class="form-container">
+            <div class="form-group">
+                <label class="form-label notranslate" translate="no">उत्पाद का शीर्षक</label>
+                <div class="input-wrapper">
+                    <input type="text" id="field-title" name="name" class="form-input notranslate" translate="no">
+                    <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-title').value=''"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label notranslate" translate="no">उत्पाद का विवरण</label>
+                <div class="input-wrapper">
+                    <textarea id="field-description" name="description" class="form-input notranslate" translate="no"></textarea>
+                    <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-description').value=''"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label notranslate" translate="no">उत्पाद की मात्रा</label>
+                <div class="input-wrapper">
+                    <input type="number" id="field-quantity" name="quantity" class="form-input notranslate" translate="no">
+                    <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-quantity').value=''"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label notranslate" translate="no">ऑफर</label>
+                <div class="input-wrapper">
+                    <input type="text" id="field-offer" name="offer_percentage" class="form-input notranslate" translate="no">
+                    <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-offer').value=''"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label notranslate" translate="no">मूल्य</label>
+                <div class="input-wrapper">
+                    <input type="number" id="field-price" name="price" class="form-input notranslate" translate="no">
+                    <i class="far fa-times-circle clear-icon" onclick="document.getElementById('field-price').value=''"></i>
+                </div>
+            </div>
+            
+            <!-- Hidden Fields for Backend submission -->
+            <input type="hidden" name="step" value="7">
+            
+            <button type="submit" class="proceed-btn notranslate" translate="no" style="margin: 40px 0 0 0; width: 100%;">
+                सहेजें
+            </button>
+        </form>
+    </div>
+
+    <!-- SCREEN 5: SUCCESS -->
+    <div id="screen-success" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease-in-out;" data-redirect-url="{% url 'product_list' %}">
+        
+        <div class="mb-5 text-center">
+            <img src="{% static 'images/account/success.png' %}" alt="Product Added Successfully" class="img-fluid" style="max-width: 250px;">
+        </div>
+
+        <h2 class="mb-3 text-center" style="font-weight: 700; color: #333;" class="notranslate" translate="no">सफलता</h2>
+        
+        <p class="text-muted mb-5 text-center" style="font-size: 1.1rem;" class="notranslate" translate="no">
+            आपका उत्पाद सफलतापूर्वक जुड़ गया है
+        </p>
+        
+    </div>
+</div>
+
+{% include "components/footer.html" %}
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'js/product_upload_wizard.js' %}"></script>
+{% endblock %}

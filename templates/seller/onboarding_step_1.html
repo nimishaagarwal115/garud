@@ -1,0 +1,188 @@
+{% extends "base/outer_base.html" %}
+{% load static %}
+{% block title %}Garud | Photo{% endblock %}
+
+{% block content %}
+<div id="step1-container" class="position-relative" style="height: 100vh; background-color: #fff; overflow: hidden;">
+    
+    <!-- State 1: Voice Instruction (Image 3) -->
+    <div id="state-voice" class="d-flex flex-column align-items-center justify-content-center h-100" style="background-color: #fff;">
+        <div id="voice-animation-container" style="position: relative; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; margin-bottom: 30px;">
+            <div class="pulse-ring" style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background-color: rgba(217, 75, 43, 0.1); animation: pulse 2s infinite;"></div>
+            <div class="pulse-ring" style="position: absolute; width: 75%; height: 75%; border-radius: 50%; background-color: rgba(217, 75, 43, 0.2); animation: pulse 2s infinite 0.5s;"></div>
+            
+            <button id="start-camera-btn" class="btn" style="position: relative; width: 60px; height: 60px; border-radius: 50%; background-color: #d94b2b; color: white; border: none; display: flex; align-items: center; justify-content: center; z-index: 2;">
+                <i class="bi bi-mic-fill" style="font-size: 28px;"></i>
+            </button>
+        </div>
+        <h2 style="color: #333; font-weight: 600; font-size: 24px;">Take your photo</h2>
+        <p class="text-muted mt-2" style="font-size: 14px;">(Tap microphone to open camera)</p>
+    </div>
+
+    <!-- State 2: Camera Overlay (Image 4) -->
+    <div id="state-camera" class="d-none position-absolute w-100 h-100" style="top: 0; left: 0; background-color: #111; z-index: 10;">
+        <button id="close-camera-btn" class="btn text-white position-absolute" style="top: 20px; left: 20px; z-index: 12; font-size: 24px;">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        
+        <video id="camera-stream" autoplay playsinline class="w-100 h-100" style="object-fit: cover;"></video>
+        
+        <div class="position-absolute w-100 d-flex justify-content-center" style="bottom: 40px; z-index: 12;">
+            <button id="capture-btn" class="btn" style="width: 70px; height: 70px; border-radius: 50%; border: 4px solid white; background-color: transparent; display: flex; align-items: center; justify-content: center;">
+                <div style="width: 54px; height: 54px; border-radius: 50%; background-color: white;"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- State 3: Photo Confirmation (Image 5) -->
+    <div id="state-confirmation" class="d-none flex-column h-100" style="background-color: #fff; padding: 20px;">
+        <!-- Top Nav / Back -->
+        <div class="mb-3">
+            <a href="{% url 'seller_welcome' %}" class="text-dark text-decoration-none" style="font-size: 24px;"><i class="bi bi-arrow-left"></i></a>
+        </div>
+        
+        <!-- Stepper -->
+        <div class="d-flex justify-content-between align-items-center mb-4 position-relative px-2">
+            <div class="position-absolute" style="top: 15px; left: 10px; right: 10px; height: 2px; background-image: linear-gradient(to right, #d94b2b 50%, transparent 50%); background-size: 8px 1px; background-repeat: repeat-x; z-index: 1;"></div>
+            
+            <div class="d-flex flex-column align-items-center" style="z-index: 2;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 32px; height: 32px; background-color: #d94b2b; font-weight: bold;">1</div>
+                <span style="font-size: 10px; color: #555; margin-top: 4px;">Photo</span>
+            </div>
+            
+            {% for i in '2345678'|make_list %}
+            <div class="d-flex flex-column align-items-center" style="z-index: 2;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-danger" style="width: 32px; height: 32px; background-color: #fbeae8; font-weight: bold;">{{ i }}</div>
+                <span style="font-size: 10px; color: #999; margin-top: 4px;">...</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-3 flex-grow-1">
+            <h2 style="color: #333; font-weight: 600; font-size: 22px;">Personal Information</h2>
+            <p class="text-muted mt-2 mb-4" style="font-size: 14px;">Photo</p>
+            
+            <div style="width: 140px; height: 140px; border-radius: 50%; margin: 0 auto; overflow: hidden; border: 2px solid #eaeaea;">
+                <img id="captured-photo-preview" src="" alt="Captured Photo" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        </div>
+
+        <!-- Hidden Form for submission -->
+        <form method="post" enctype="multipart/form-data" id="photo-form" class="d-none">
+            {% csrf_token %}
+            <input type="file" id="photo-input" name="photo">
+        </form>
+
+        <div class="d-flex justify-content-between gap-3 mt-auto mb-3">
+            <button id="retake-btn" class="btn flex-fill" style="background-color: #f3a34a; color: white; border-radius: 8px; font-weight: 500; padding: 14px 0; font-size: 16px;">
+                Retake
+            </button>
+            <button id="submit-btn" class="btn flex-fill" style="background-color: #d94b2b; color: white; border-radius: 8px; font-weight: 500; padding: 14px 0; font-size: 16px;">
+                Next
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(1.2); opacity: 0; }
+}
+</style>
+<canvas id="canvas" class="d-none"></canvas>
+{% endblock content %}
+
+{% block script %}
+<script src="{% static 'js/voice/speechSynthesis.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const stateVoice = document.getElementById("state-voice");
+    const stateCamera = document.getElementById("state-camera");
+    const stateConfirmation = document.getElementById("state-confirmation");
+
+    const startCameraBtn = document.getElementById("start-camera-btn");
+    const closeCameraBtn = document.getElementById("close-camera-btn");
+    const captureBtn = document.getElementById("capture-btn");
+    const retakeBtn = document.getElementById("retake-btn");
+    const submitBtn = document.getElementById("submit-btn");
+
+    const video = document.getElementById("camera-stream");
+    const canvas = document.getElementById("canvas");
+    const preview = document.getElementById("captured-photo-preview");
+    const photoInput = document.getElementById("photo-input");
+    const photoForm = document.getElementById("photo-form");
+
+    let stream = null;
+
+    // Welcome voice
+    // window.voiceSynthesis.speak("Please take your photo for verification.");
+
+    async function openCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+            video.srcObject = stream;
+            stateVoice.classList.add("d-none");
+            stateCamera.classList.remove("d-none");
+        } catch (err) {
+            console.error("Camera access denied: ", err);
+            alert("Please allow camera access to take a photo.");
+        }
+    }
+
+    function closeCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+    }
+
+    startCameraBtn.addEventListener("click", openCamera);
+    
+    closeCameraBtn.addEventListener("click", function() {
+        closeCamera();
+        stateCamera.classList.add("d-none");
+        stateVoice.classList.remove("d-none");
+    });
+
+    captureBtn.addEventListener("click", function() {
+        // Draw video frame to canvas
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        // Flip horizontally if front camera (mirror effect)
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to file
+        canvas.toBlob(function(blob) {
+            const file = new File([blob], "profile_photo.jpg", { type: "image/jpeg" });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            photoInput.files = dataTransfer.files;
+
+            // Set preview
+            preview.src = URL.createObjectURL(blob);
+            
+            // Switch UI
+            closeCamera();
+            stateCamera.classList.add("d-none");
+            stateConfirmation.classList.remove("d-none");
+            stateConfirmation.classList.add("d-flex");
+
+        }, "image/jpeg", 0.9);
+    });
+
+    retakeBtn.addEventListener("click", function() {
+        stateConfirmation.classList.add("d-none");
+        stateConfirmation.classList.remove("d-flex");
+        openCamera();
+    });
+
+    submitBtn.addEventListener("click", function() {
+        photoForm.submit();
+    });
+});
+</script>
+{% endblock script %}

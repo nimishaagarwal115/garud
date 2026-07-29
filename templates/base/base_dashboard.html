@@ -1,0 +1,30 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block all_title %}Dashboard - {% block title %}{% endblock%}{% endblock %}
+
+{% block css_files %}
+  <link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components/footer.css' %}">
+{% endblock %}    
+
+{% block styles %}{% endblock %}
+
+{% block All_Content %}
+  
+  {% include 'components/header.html' %}
+
+  <div class="dashboard-body">
+    {% block content %}{% endblock %}
+  </div>
+
+  {% include 'components/footer.html' %}
+
+{% endblock %}
+
+{% block script %}
+
+  {% block dashboard_script %}{% endblock %}
+
+{% endblock %}

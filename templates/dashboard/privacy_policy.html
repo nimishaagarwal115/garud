@@ -1,0 +1,30 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}Privacy Policy{% endblock all_title %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-3">
+        <a href="{% url 'user_profile' %}" class="text-decoration-none text-dark mb-3 d-inline-block">
+            &larr; Privacy Policy
+        </a>
+    </div>
+
+    <p style="font-size: 16px; line-height: 1.8; color: #555;">
+        Privacy Policy for Garuda
+    </p>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    cument.addEventListener("DOMContentLoaded", () => {
+        const policyText = document.querySelector('.container p')?.innerText;
+
+        if (policyText && window.voiceFormAssist) {
+            window.voiceFormAssist.speakText(policyText);
+        }
+    });do
+</script>
+{% endblock scripts %}

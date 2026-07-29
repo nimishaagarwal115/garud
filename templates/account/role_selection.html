@@ -1,0 +1,39 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Garuda | Role Selection{% endblock %}
+
+{% block All_Content %}
+<div class="d-flex flex-column justify-content-center p-4" style="height: 100vh; background-color: #f8f9fa;">
+    
+    <div class="w-100 mx-auto" style="max-width: 400px;">
+        <!-- Customer Card -->
+        <div class="card mb-4 border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4 d-flex flex-column align-items-center text-center">
+                <div class="icon-wrapper mb-3" style="background-color: #fff3ed; border-radius: 50%; padding: 20px;">
+                    <i class="bi bi-cart3" style="font-size: 36px; color: #d94b2b;"></i>
+                </div>
+                <h3 class="mb-2" style="color: #333; font-weight: 700;">Customer</h3>
+                <p class="mb-4 text-muted" style="font-size: 16px;">Buy handmade products</p>
+                <a href="{% url 'customer_login' %}" class="btn w-100" style="background-color: #d94b2b; color: white; border-radius: 8px; font-weight: 500; padding: 12px 0;">
+                    Continue
+                </a>
+            </div>
+        </div>
+
+        <!-- Seller Card -->
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4 d-flex flex-column align-items-center text-center">
+                <div class="icon-wrapper mb-3" style="background-color: #fff3ed; border-radius: 50%; padding: 20px;">
+                    <i class="bi bi-shop" style="font-size: 36px; color: #d94b2b;"></i>
+                </div>
+                <h3 class="mb-2" style="color: #333; font-weight: 700;">Seller / Artisan</h3>
+                <p class="mb-4 text-muted" style="font-size: 16px;">Sell handmade products</p>
+                <a href="{% url 'login' %}?role=Seller" class="btn w-100" style="background-color: #f3a34a; color: white; border-radius: 8px; font-weight: 500; padding: 12px 0;">
+                    Continue
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock All_Content %}

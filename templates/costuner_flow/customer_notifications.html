@@ -1,0 +1,327 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Hide notification bell on this specific page */
+    .notification-btn { display: none !important; }
+    
+    /* Custom Sub-Header for Notifications Title & Toggle */
+    .notif-header {
+        background-color: #ffffff;
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #333;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .notif-header-left {
+        display: flex;
+        align-items: center;
+    }
+    
+    .back-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        margin-right: 15px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .notif-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    /* Toggle Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #7acc7a; /* Green matching prototype */
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+    
+    /* Layout */
+    .notif-container {
+        background-color: #fff;
+        min-height: calc(100vh - 120px);
+        padding-bottom: 80px;
+    }
+    
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        padding: 15px 20px 10px;
+        margin: 0;
+    }
+    
+    .notif-card {
+        display: flex;
+        padding: 15px 20px;
+        border-bottom: 1px solid #f5f5f5;
+        align-items: flex-start;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .notif-card.unread {
+        background-color: #fffcf8; /* Very subtle tint for unread as in prototype */
+    }
+    
+    .notif-img-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: #f0f0f0;
+        margin-right: 15px;
+        flex-shrink: 0;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .notif-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .notif-content {
+        flex-grow: 1;
+        padding-right: 10px;
+    }
+    
+    .notif-text {
+        font-size: 14px;
+        color: #333;
+        line-height: 1.4;
+        margin: 0 0 5px 0;
+    }
+    
+    .notif-text strong {
+        color: #b94a2c; /* Theme color for highlights if needed */
+        font-weight: 500;
+    }
+    
+    .notif-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        min-width: 65px;
+    }
+    
+    .notif-time {
+        font-size: 12px;
+        color: #777;
+        margin-bottom: 5px;
+    }
+    
+    .unread-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #b94a2c;
+        border-radius: 50%;
+    }
+    
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+    }
+    
+    .empty-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .empty-text {
+        font-size: 14px;
+        color: #777;
+    }
+</style>
+
+<!-- Custom Sub-Header -->
+<div class="notif-header">
+    <div class="notif-header-left">
+        <h1 class="notif-title">Notifications</h1>
+    </div>
+    <label class="switch">
+        <input type="checkbox" id="notif-toggle" {% if is_notifications_enabled %}checked{% endif %}>
+        <span class="slider"></span>
+    </label>
+</div>
+
+<!-- Main Content -->
+<div class="notif-container">
+    {% csrf_token %}
+    
+    {% if new_count == 0 and earlier_count == 0 %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <img src="{% static 'images/components/bell_empty.svg' %}" alt="No Notifications" style="width: 80px; margin-bottom: 20px; opacity: 0.5; display: none;"> <!-- Optional empty icon -->
+            <h2 class="empty-title">No Notifications Yet</h2>
+            <p class="empty-text">You're all caught up.</p>
+        </div>
+    {% else %}
+        
+        <!-- New Section -->
+        {% if new_count > 0 %}
+            <h2 class="section-title">New ({{ new_count }})</h2>
+            {% for notif in new_notifications %}
+            <div class="notif-card unread" onclick="markReadAndRedirect({{ notif.id }}, '{{ notif.target_url|default:'#' }}')">
+                <div class="notif-img-wrapper">
+                    {% if notif.image %}
+                        <img src="{{ notif.image.url }}" alt="Notification Image" class="notif-img">
+                    {% else %}
+                        <i class="bi bi-bell" style="font-size: 20px; color: #999;"></i>
+                    {% endif %}
+                </div>
+                <div class="notif-content">
+                    <p class="notif-text">{{ notif.title|safe }} {{ notif.message|safe }}</p>
+                </div>
+                <div class="notif-meta">
+                    <span class="notif-time">{{ notif.formatted_time }}</span>
+                    <div class="unread-dot"></div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Earlier Section -->
+        {% if earlier_count > 0 %}
+            <h2 class="section-title">Earlier ({{ earlier_count }})</h2>
+            {% for notif in earlier_notifications %}
+            <div class="notif-card" onclick="window.location.href='{{ notif.target_url|default:'#' }}'">
+                <div class="notif-img-wrapper">
+                    {% if notif.image %}
+                        <img src="{{ notif.image.url }}" alt="Notification Image" class="notif-img">
+                    {% else %}
+                        <i class="bi bi-bell" style="font-size: 20px; color: #999;"></i>
+                    {% endif %}
+                </div>
+                <div class="notif-content">
+                    <p class="notif-text">{{ notif.title|safe }} {{ notif.message|safe }}</p>
+                </div>
+                <div class="notif-meta">
+                    <span class="notif-time">{{ notif.formatted_time }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+        
+    {% endif %}
+</div>
+
+{% include 'components/costumerfooter.html' %}
+
+<script>
+    // Notification Toggle Logic
+    document.getElementById('notif-toggle').addEventListener('change', function(e) {
+        const isEnabled = e.target.checked;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch("{% url 'toggle_customer_notifications' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ is_enabled: isEnabled })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') {
+                // Revert UI on failure
+                e.target.checked = !isEnabled;
+                alert('Failed to update preference.');
+            }
+        })
+        .catch(err => {
+            console.error('Error toggling notification preference:', err);
+            e.target.checked = !isEnabled;
+        });
+    });
+    
+    // Mark Notification as Read Logic
+    function markReadAndRedirect(notifId, targetUrl) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch(`/account/customer/notifications/read/${notifId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (targetUrl && targetUrl !== '#') {
+                window.location.href = targetUrl;
+            } else {
+                // Just reload to update the UI
+                window.location.reload();
+            }
+        })
+        .catch(err => {
+            console.error('Error marking notification read:', err);
+            if (targetUrl && targetUrl !== '#') {
+                window.location.href = targetUrl;
+            }
+        });
+    }
+</script>
+{% endblock %}

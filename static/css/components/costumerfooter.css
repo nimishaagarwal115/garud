@@ -1,0 +1,127 @@
+:root {
+  --clr-bg: #fff;
+  --clr-primary: #bd3a23;
+  --clr-shadow: rgba(0, 0, 0, 0.2);
+}
+
+footer.mobile-footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 425px;   /* Match main's max-width */
+  display: flex;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.footer-nav {
+  background: var(--clr-bg);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 -10px 10px var(--clr-shadow);
+  position: relative;
+}
+
+.footer-menu {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 12px 0 12px;
+  list-style: none;
+  margin: 0;
+  position: relative;
+}
+
+.footer-item {
+  text-align: center;
+  flex: 1;
+  z-index: 1;
+}
+
+.footer-item a {
+  text-decoration: none;
+  color: #6e6e6e;
+  font-size: 10px;
+  font-weight: 500;
+  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: 0.3s ease;
+}
+
+/* Active color for icon and text */
+.footer-item.active a {
+  color: var(--clr-primary);
+}
+
+.footer-item .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-item .icon img {
+  width: 26px;
+  height: 26px;
+}
+
+.footer-item .text {
+  margin-top: 4px;
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+
+.footer-item a:hover,
+.footer-item.active a {
+  color: var(--clr-primary);
+}
+
+
+/* Profile image default style */
+.footer-item .profile-pic {
+  width: 34px;
+  height: 34px;
+  border: 2px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+
+/* App Container Constrained Menu */
+.garud-menu-wrapper {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 425px; /* Matches main app container width */
+  overflow: hidden;
+  pointer-events: none; /* Let clicks pass through when empty */
+  z-index: 1045; /* Bootstrap offcanvas z-index */
+}
+
+/* Ensure the offcanvas stays inside the wrapper */
+#garudMenu.offcanvas-end {
+  position: absolute !important;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  pointer-events: auto; /* Re-enable clicks for the menu itself */
+  border-left: none !important;
+}
+
+/* Constrain Bootstrap Backdrop to App Container */
+.offcanvas-backdrop {
+  position: fixed !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+  max-width: 425px !important;
+}

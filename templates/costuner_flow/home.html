@@ -1,0 +1,634 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Garud - Home{% endblock %}
+
+{% block styles %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #fdfaf5; /* Light cream background from prototype */
+        margin: 0;
+        padding: 0;
+        padding-bottom: 80px; /* Space for bottom nav */
+    }
+
+    /* Location Bar */
+    .location-bar {
+        background-color: #c23b22; /* Dark red */
+        color: white;
+        padding: 10px 16px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .location-icon {
+        width: 14px;
+        height: 14px;
+        fill: white;
+    }
+
+    /* Horizontal Scroll Shared */
+    .horizontal-scroll {
+        display: flex;
+        overflow-x: auto;
+        padding: 16px;
+        gap: 16px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .horizontal-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Categories */
+    .category-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-width: 70px;
+        text-decoration: none;
+        color: #333;
+    }
+    .category-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        object-fit: cover;
+        background-color: #fff;
+        border: 2px solid transparent;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .category-name {
+        font-size: 12px;
+        text-align: center;
+        font-weight: 500;
+        color: #1a1a1a;
+    }
+
+    /* Banners */
+    .banners-container {
+        padding: 0 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .promo-banner {
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        height: 160px;
+        text-decoration: none;
+        color: white;
+    }
+    .promo-banner.blue {
+        background: #5b87af;
+    }
+    .promo-banner.brown {
+        background: #b68735;
+    }
+    .promo-banner-content {
+        flex: 1;
+        padding: 20px 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .promo-banner-title {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        line-height: 1.2;
+    }
+    .promo-banner-desc {
+        font-size: 14px;
+        margin: 0 0 12px 0;
+        font-weight: 500;
+        line-height: 1.3;
+    }
+    .promo-banner-link {
+        font-size: 12px;
+        text-decoration: underline;
+        margin-top: auto;
+    }
+    .promo-banner-image {
+        width: 140px;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Section Headings */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px;
+        margin-bottom: 4px;
+        margin-top: 10px;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .section-timer {
+        color: #d03027;
+        font-size: 13px;
+        font-weight: 700;
+    }
+    .view-all {
+        font-size: 13px;
+        color: #d03027;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    /* Product Cards */
+    .product-card {
+        min-width: 140px;
+        max-width: 160px;
+        background: transparent;
+        border-radius: 8px;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    .product-image-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 8px;
+        background: #fff;
+    }
+    .product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .product-badge {
+        position: absolute;
+        bottom: 0px;
+        left: 0px;
+        background: #d03027;
+        color: white;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-top-right-radius: 8px;
+    }
+    .product-badge-inline {
+        background: #d03027;
+        color: white;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 4px;
+    }
+    
+    .wishlist-btn {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 28px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 2;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .wishlist-btn svg {
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: #999;
+        stroke-width: 2;
+    }
+    .wishlist-btn.active svg {
+        fill: #d03027;
+        stroke: #d03027;
+    }
+    
+    .product-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: #4a4a4a;
+        margin: 0 0 4px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .product-rating {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 10px;
+        color: #888;
+        margin-bottom: 4px;
+    }
+    .star-icon {
+        color: #ffc107;
+        font-size: 12px;
+    }
+    .product-price-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .product-price {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+    .product-original-price {
+        font-size: 12px;
+        color: #999;
+        text-decoration: line-through;
+    }
+    .product-discount-small {
+        background: #d03027;
+        color: white;
+        font-size: 10px;
+        padding: 1px 4px;
+        border-radius: 2px;
+        font-weight: 600;
+    }
+
+    /* Red Footer */
+    .info-footer {
+        background-color: #c0392b;
+        padding: 24px 20px;
+        color: white;
+        margin-top: 32px;
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 90px;
+    }
+    .footer-col {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .footer-title {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+    }
+    .footer-link {
+        color: white;
+        text-decoration: none;
+        font-size: 13px;
+    }
+    
+    /* Ensure no text decoration on cards */
+    a:hover {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    /* Delivery Location Bottom Sheet */
+    .location-sheet-backdrop {
+        position: fixed; top: 0; bottom: 0; width: 100%; max-width: 480px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,0.5); z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    }
+    .location-sheet-backdrop.show { opacity: 1; pointer-events: auto; }
+
+    .location-sheet {
+        position: fixed; bottom: 0; width: 100%; max-width: 480px; left: 50%; transform: translateX(-50%) translateY(100%);
+        background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 10001;
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; flex-direction: column;
+        box-shadow: 0 -2px 15px rgba(0,0,0,0.1); padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+    .location-sheet.show { transform: translateX(-50%) translateY(0); }
+
+    .sheet-header {
+        display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 10px;
+    }
+    .sheet-title {
+        font-size: 18px; font-weight: 600; color: #212121; margin: 0;
+    }
+    .sheet-close {
+        background: none; border: none; color: #d32f2f; font-size: 14px; font-weight: 500; cursor: pointer; padding: 0;
+    }
+    .sheet-subtitle {
+        font-size: 13px; color: #616161; padding: 0 20px 20px; line-height: 1.4;
+    }
+
+    .address-list {
+        display: flex; overflow-x: auto; padding: 0 20px 20px; gap: 12px; scrollbar-width: none;
+    }
+    .address-list::-webkit-scrollbar { display: none; }
+
+    .address-card {
+        min-width: 140px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; cursor: pointer;
+        display: flex; flex-direction: column; gap: 4px; transition: all 0.2s;
+    }
+    .address-card.selected {
+        border-color: #d32f2f; background-color: #fffafa;
+    }
+    .address-name {
+        font-size: 14px; font-weight: 600; color: #212121; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .address-details {
+        font-size: 12px; color: #616161; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .sheet-footer {
+        padding: 10px 20px 20px; border-top: 1px solid #f5f5f5;
+    }
+    .add-address-btn {
+        display: flex; align-items: center; gap: 8px; color: #d32f2f; font-size: 14px; font-weight: 500; text-decoration: none;
+    }
+    .add-icon {
+        width: 20px; height: 20px; fill: none;
+    }
+    .empty-state {
+        font-size: 14px; color: #757575; padding: 20px 0; text-align: center; width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Location Bar -->
+<div class="location-bar" onclick="openLocationSheet()" style="cursor: pointer;">
+    <svg class="location-icon" viewBox="0 0 24 24">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+    <span id="headerLocationText">
+    {% if user_address %}
+        {% trans "Deliver to" %} {{ request.user.profile.full_name|default:request.user.mobile }} - {{ user_address.town_city }} {{ user_address.pincode }}
+    {% else %}
+        {% trans "Deliver to" %} {{ request.user.profile.full_name|default:"Customer" }} - {% trans "Set Location" %}
+    {% endif %}
+    </span>
+    <svg style="width: 12px; height: 12px; fill: white; margin-left: 2px;" viewBox="0 0 24 24">
+        <path d="M7 10l5 5 5-5z"/>
+    </svg>
+</div>
+
+<!-- Categories -->
+<div class="horizontal-scroll">
+    {% for category in categories %}
+        <a href="#" class="category-item">
+            {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-icon">
+            {% else %}
+                <img src="{% static 'images/dashboard/wepik-export-20240213122903uG7Q (3).png' %}" alt="{{ category.name }}" class="category-icon">
+            {% endif %}
+            <span class="category-name">{% trans category.name %}</span>
+        </a>
+    {% endfor %}
+</div>
+
+<!-- Banners -->
+<div class="banners-container">
+    <!-- Best Sellers Banner -->
+    <a href="#" class="promo-banner blue">
+        <div class="promo-banner-content">
+            <h3 class="promo-banner-title">{% trans "Best Sellers" %}</h3>
+            <p class="promo-banner-desc">{% trans "Home Decorative Paper Flowers" %}</p>
+            <span class="promo-banner-link">{% trans "Explore all category" %}</span>
+        </div>
+        <img src="{% static 'images/dashboard/Rectangle 1078.png' %}" alt="Best Sellers" class="promo-banner-image">
+    </a>
+
+    <!-- Never-Ending Sale Banner -->
+    <a href="#" class="promo-banner brown">
+        <div class="promo-banner-content">
+            <h3 class="promo-banner-title">{% trans "Never-<br>Ending Sale" %}</h3>
+            <p class="promo-banner-desc">{% trans "Throwback Pots & all-day crafts" %}</p>
+            <span class="promo-banner-link">{% trans "Explore all category" %}</span>
+        </div>
+        <img src="{% static 'images/dashboard/Rectangle 1078 (1).png' %}" alt="Never-Ending Sale" class="promo-banner-image">
+    </a>
+</div>
+
+<!-- Flash Sales -->
+<div class="section-header">
+    <h2 class="section-title">
+        {% trans "Flash Sales" %}
+        <span class="section-timer">{% trans "Offer" %}(02:05:32)</span>
+    </h2>
+    <a href="#" class="view-all">{% trans "View all" %} &gt;</a>
+</div>
+<div class="horizontal-scroll" style="padding-top: 8px;">
+    {% for product_with_media in flash_sales %}
+        {% with product=product_with_media.0 media_list=product_with_media.1 %}
+        <a href="{% url 'customer_product_detail' product.id %}" class="product-card">
+            <div class="product-image-wrapper">
+                {% if media_list %}
+                    <img src="{{ media_list.0.image.url }}" alt="{{ product.name }}" class="product-image">
+                {% else %}
+                    <img src="{% static 'images/dashboard/wepik-export-20240213122903uG7Q (3).png' %}" alt="No Image" class="product-image">
+                {% endif %}
+                
+                {% if product.discount_percentage %}
+                    <div class="product-badge">-{{ product.discount_percentage|floatformat:0 }}% {% trans "Limited Time Deal" %}</div>
+                {% else %}
+                    <div class="product-badge">{% trans "Limited Time Deal" %}</div>
+                {% endif %}
+            </div>
+        </a>
+        {% endwith %}
+    {% empty %}
+        <div style="font-size: 13px; color: #666; padding: 0 16px;">{% trans "No Flash Sales currently available." %}</div>
+    {% endfor %}
+</div>
+
+<!-- New Arrivals -->
+<div class="section-header" style="margin-top: 24px;">
+    <h2 class="section-title">{% trans "New Arrivals" %}</h2>
+    <a href="#" class="view-all">{% trans "View all" %} &gt;</a>
+</div>
+<div class="horizontal-scroll" style="padding-top: 8px;">
+    {% for product_with_media in new_arrivals %}
+        {% with product=product_with_media.0 media_list=product_with_media.1 %}
+        <a href="{% url 'customer_product_detail' product.id %}" class="product-card">
+            <div class="product-image-wrapper">
+                {% if media_list %}
+                    <img src="{{ media_list.0.image.url }}" alt="{{ product.name }}" class="product-image">
+                {% else %}
+                    <img src="{% static 'images/dashboard/wepik-export-20240213122903uG7Q (3).png' %}" alt="No Image" class="product-image">
+                {% endif %}
+            </div>
+            <h3 class="product-title">{{ product.name }}</h3>
+            <div class="product-price">₹ {{ product.effective_price }}</div>
+        </a>
+        {% endwith %}
+    {% empty %}
+        <div style="font-size: 13px; color: #666; padding: 0 16px;">{% trans "No New Arrivals currently available." %}</div>
+    {% endfor %}
+</div>
+
+<!-- Top Items -->
+<div class="section-header" style="margin-top: 24px;">
+    <h2 class="section-title">{% trans "Top Items" %}</h2>
+    <a href="#" class="view-all">{% trans "View all" %} &gt;</a>
+</div>
+<div class="horizontal-scroll" style="padding-top: 8px;">
+    {% for product_with_media in top_items %}
+        {% with product=product_with_media.0 media_list=product_with_media.1 %}
+        <div class="product-card">
+            <button class="wishlist-btn {% if product.id in wishlist_product_ids %}active{% endif %}" data-product-id="{{ product.id }}">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </button>
+            <a href="{% url 'customer_product_detail' product.id %}" style="text-decoration: none; color: inherit;">
+                <div class="product-image-wrapper">
+                    {% if media_list %}
+                        <img src="{{ media_list.0.image.url }}" alt="{{ product.name }}" class="product-image">
+                    {% else %}
+                        <img src="{% static 'images/dashboard/wepik-export-20240213122903uG7Q (3).png' %}" alt="No Image" class="product-image">
+                    {% endif %}
+                </div>
+                <h3 class="product-title">{{ product.name }}</h3>
+                <div class="product-rating">
+                    <span class="star-icon">★</span><span class="star-icon">★</span><span class="star-icon">★</span><span class="star-icon">★</span><span class="star-icon">★</span>
+                    <span>({{ product.review_count|default:"289" }})</span>
+                </div>
+                <div class="product-price-row">
+                    <span class="product-price">₹ {{ product.effective_price }}</span>
+                    {% if product.is_on_sale %}
+                        <span class="product-original-price">₹ {{ product.price }}</span>
+                        <span class="product-discount-small">-{{ product.discount_percentage|floatformat:0 }}%</span>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
+        {% endwith %}
+    {% empty %}
+        <div style="font-size: 13px; color: #666; padding: 0 16px;">{% trans "No Top Items currently available." %}</div>
+    {% endfor %}
+</div>
+
+<!-- Red Info Footer -->
+<div class="info-footer">
+    <div class="footer-col">
+        <h4 class="footer-title">{% trans "Company" %}</h4>
+        <a href="#" class="footer-link">{% trans "About Us" %}</a>
+    </div>
+    <div class="footer-col">
+        <h4 class="footer-title">{% trans "How to Buy" %}</h4>
+        <a href="#" class="footer-link">{% trans "Making Payments" %}</a>
+        <a href="#" class="footer-link">{% trans "Delivery Options" %}</a>
+    </div>
+    <div class="footer-col">
+        <h4 class="footer-title">{% trans "Help" %}</h4>
+        <a href="#" class="footer-link">{% trans "Contact Us" %}</a>
+        <a href="#" class="footer-link">{% trans "FAQ" %}</a>
+        <a href="#" class="footer-link">{% trans "Privacy Policy" %}</a>
+    </div>
+</div>
+
+{% include "components/costumerfooter.html" %}
+
+<!-- Delivery Location Bottom Sheet -->
+<div class="location-sheet-backdrop" id="locationSheetBackdrop" onclick="closeLocationSheet()"></div>
+<div class="location-sheet" id="locationSheet">
+    <div class="sheet-header">
+        <h4 class="sheet-title">Choose your location</h4>
+        <button class="sheet-close" onclick="closeLocationSheet()">Close</button>
+    </div>
+    <div class="sheet-subtitle">Select a delivery location to see product availability and delivery options</div>
+    
+    <div class="address-list">
+        {% if customer_addresses %}
+            {% for addr in customer_addresses %}
+            <div class="address-card {% if addr.is_default or user_address.pk == addr.pk %}selected{% endif %}" onclick="selectAddress('{{ addr.pk }}', '{{ addr.town_city }}', '{{ addr.pincode }}', this)">
+                <div class="address-name">{{ addr.full_name }}</div>
+                <div class="address-details">{{ addr.town_city }} {{ addr.pincode }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">No saved addresses yet.</div>
+        {% endif %}
+    </div>
+    
+    <div class="sheet-footer">
+        <a href="{% url 'customer_address_add' %}" class="add-address-btn">
+            <svg viewBox="0 0 24 24" class="add-icon">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="#d32f2f" stroke-width="2"/>
+                <path d="M12 7v10M7 12h10" stroke="#d32f2f" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Add An Address
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+function openLocationSheet() {
+    document.getElementById('locationSheetBackdrop').classList.add('show');
+    document.getElementById('locationSheet').classList.add('show');
+}
+
+function closeLocationSheet() {
+    document.getElementById('locationSheetBackdrop').classList.remove('show');
+    document.getElementById('locationSheet').classList.remove('show');
+}
+
+function selectAddress(addressId, townCity, pincode, element) {
+    // Make fetch request to set default
+    fetch("{% url 'customer_address_default' 0 %}".replace('0', addressId), {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Update UI
+            document.querySelectorAll('.address-card').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            const headerText = `
+        {% trans "Deliver to" %} {{ request.user.profile.full_name|default:request.user.mobile|escapejs }} - ${townCity} ${pincode}
+    `;
+            document.getElementById('headerLocationText').innerHTML = headerText;
+            
+            closeLocationSheet();
+        } else {
+            alert('Error setting default address. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error setting default address. Please try again.');
+    });
+}
+
+// Highlight Home tab
+document.addEventListener("DOMContentLoaded", function() {
+    const homeTab = document.querySelector('.footer-item.list a[href="/customer-home/"]');
+    if (homeTab) {
+        homeTab.parentElement.classList.add('active');
+    }
+});
+</script>
+{% endblock %}

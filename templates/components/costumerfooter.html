@@ -1,0 +1,53 @@
+{% load static %}
+<footer class="mobile-footer" style="padding-top: 59px;">
+  <div class="footer-nav">
+    <ul class="footer-menu">
+      <!-- CUSTOMER NAVIGATION -->
+      <li class="footer-item list">
+        <a href="/customer-home/">
+          <span class="icon"><img src="{% static 'images/components/footer_icons/selected_home.svg' %}" alt="Home" class="icon"></span>
+          <span class="text">Home</span>
+        </a>
+      </li>
+      <li class="footer-item list {% if is_wishlist_page %}active{% endif %}">
+        <a href="{% url 'customer_wishlist' %}">
+          <span class="icon"><img src="{% static 'images/components/footer_icons/Vector.svg' %}" alt="Wishlist" class="icon"></span>
+          <span class="text">Wishlist</span>
+        </a>
+      </li>
+      <li class="footer-item list"> 
+        <a href="{% url 'cart' %}">
+          <span class="icon"><img src="{% static 'images/components/footer_icons/deselected_cart.svg' %}" alt="Cart" class="icon"></span>
+          <span class="text">Cart</span>
+        </a>
+      </li>
+
+      <li class="footer-item list {% if request.resolver_match.url_name == 'customer_menu' %}active{% endif %}">
+        <a href="{% url 'customer_menu' %}">
+          <span class="icon">
+            {% if request.user.is_authenticated and request.user.profile.profile_picture %}
+              <img src="{{ request.user.profile.profile_picture.url }}" alt="Profile" class="profile-pic" style="border-radius: 50%; object-fit: cover; width: 24px; height: 24px;">
+            {% else %}
+              <img src="{% static 'images/account/profile.png' %}" alt="Profile" class="profile-pic" style="border-radius: 50%; object-fit: cover; width: 24px; height: 24px;">
+            {% endif %}
+          </span>
+          <span class="text" data-translate="menu">Menu</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</footer>
+
+<!-- Offcanvas Menu removed in favor of standalone Customer Menu page -->
+
+<script>
+  const items = document.querySelectorAll('.list');
+  items.forEach(item =>
+    item.addEventListener('click', () => {
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    })
+  );
+</script>
+
+<link rel="stylesheet" href="{% static 'css/components/costumerfooter.css' %}">

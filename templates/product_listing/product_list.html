@@ -1,0 +1,101 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}उत्पाद सूची{% endblock %}
+
+{% block css_files %}
+<link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/footer.css' %}">
+<style>
+/* Reset and normalize */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: #ffffff; font-family: Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+
+/* Empty State / Landing Page CSS */
+.landing-container { background-color: #ffffff; min-height: calc(100vh - 140px); display: flex; flex-direction: column; align-items: center; padding: 0 20px 40px 20px; width: 100%; }
+.mic-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; margin-top: 60px; margin-bottom: 40px; width: 100%; }
+.big-mic { background-color: #B43E24; width: 160px; height: 160px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+.big-mic svg { width: 65px; height: 65px; fill: none; stroke: #ffffff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.instruction-text { font-size: 20px; color: #333333; text-align: center; margin-bottom: 50px; line-height: 1.4; max-width: 320px; }
+.buttons-container { display: flex; justify-content: space-between; width: 100%; gap: 12px; }
+.btn-ai { background-color: #F6A93B; color: #000000; font-size: 15px; font-weight: 500; border: none; border-radius: 4px; padding: 14px 10px; flex: 1; text-align: center; text-decoration: none; }
+.btn-manual { background-color: #B43E24; color: #ffffff; font-size: 15px; font-weight: 500; border: none; border-radius: 4px; padding: 14px 10px; flex: 1; text-align: center; text-decoration: none; }
+
+/* Product List CSS */
+.list-container { background-color: #fcfcfc; min-height: calc(100vh - 140px); padding: 20px 15px 100px 15px; }
+.page-title { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 20px; }
+.product-card { 
+    display: flex; background: #fff; border: 1px solid #eaeaea; border-radius: 8px; 
+    margin-bottom: 15px; padding: 12px; align-items: flex-start; gap: 15px;
+}
+.product-img { width: 90px; height: 90px; object-fit: cover; border-radius: 6px; background-color: #f4f4f4; }
+.product-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.product-name { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.product-desc { font-size: 13px; color: #666; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+.price-row { display: flex; align-items: center; gap: 8px; }
+.selling-price { font-size: 16px; font-weight: 700; color: #333; }
+.original-price { font-size: 12px; color: #999; text-decoration: line-through; }
+.discount-badge { background-color: #cc0000; color: #fff; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+</style>
+{% endblock %}
+
+{% block All_Content %}
+{% include "components/header.html" %}
+
+{% if not products %}
+<!-- EMPTY STATE: Landing Page -->
+<div class="landing-container">
+    <div class="mic-container">
+        <div class="big-mic">
+            <!-- Microphone Icon SVGs exactly like standard outlines -->
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+                <line x1="8" y1="22" x2="16" y2="22"></line>
+            </svg>
+        </div>
+    </div>
+    
+    <div class="instruction-text" translate="no" class="notranslate">
+        उत्पाद जोड़ने के लिए नीचे दिए गए बटन पर क्लिक करें
+    </div>
+    
+    <div class="buttons-container">
+        <!-- AI flow goes to upload_wizard step 1 -->
+        <a href="{% url 'upload_wizard' %}?step=1" class="btn-ai notranslate" translate="no">AI के द्वारा उत्पाद जोड़ें</a>
+        <a href="#" class="btn-manual notranslate" translate="no">स्वयं उत्पाद जोड़ें</a>
+    </div>
+</div>
+{% else %}
+<!-- PRODUCT LIST STATE -->
+<div class="list-container">
+    <h1 class="page-title notranslate" translate="no">उत्पाद सूची</h1>
+    
+    {% for product in products %}
+    <div class="product-card">
+        {% if product.media.all %}
+            <img src="{{ product.media.first.image.url }}" alt="{{ product.name }}" class="product-img">
+        {% else %}
+            <img src="{% static 'images/placeholder-image.png' %}" alt="Placeholder" class="product-img" onerror="this.src='https://via.placeholder.com/90'">
+        {% endif %}
+        
+        <div class="product-info">
+            <div class="product-name notranslate" translate="no">{{ product.name }}</div>
+            <div class="product-desc notranslate" translate="no">{{ product.description|truncatechars:80 }}</div>
+            
+            <div class="price-row">
+                <span class="selling-price">₹ {{ product.price|default:"0" }}</span>
+                {% if product.original_price and product.original_price > product.price %}
+                    <span class="original-price">₹ {{ product.original_price }}</span>
+                    <span class="discount-badge">-{{ product.discount_percentage }}%</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% include "components/footer.html" %}
+{% endblock %}

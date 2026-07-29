@@ -1,0 +1,55 @@
+{% load static %}
+
+{% if order_items %}
+    {% for item in order_items %}
+    <a href="{% url 'customer_order_detail' item.id %}" class="text-decoration-none">
+        <div class="d-flex align-items-center py-3 border-bottom" style="background-color: #fff;">
+            <!-- Product Image -->
+            <div style="width: 72px; height: 72px; border-radius: 8px; overflow: hidden; flex-shrink: 0; margin-right: 16px; background-color: #f5f5f5;">
+                {% if item.product.media.first %}
+                <img src="{{ item.product.media.first.image.url }}" alt="{{ item.product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                <img src="{% static 'images/extras/default_product.png' %}" alt="Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+                {% endif %}
+            </div>
+            
+            <!-- Order Details -->
+            <div class="flex-grow-1" style="min-width: 0;">
+                <h6 class="fw-bold mb-1 text-dark text-truncate" style="font-size: 15px;">{{ item.product.name }}</h6>
+                
+                <div class="d-flex align-items-center" style="font-size: 13px;">
+                    {% with status=item.seller_order.status %}
+                        {% if status == 'DELIVERED' %}
+                            <span style="color: green; font-weight: 600;">Delivered {{ item.seller_order.updated_at|date:"d-M-Y" }}</span>
+                        {% elif status == 'CANCELLED' %}
+                            <span style="color: red; font-weight: 600;">Cancelled {{ item.seller_order.updated_at|date:"d-M-Y" }}</span>
+                        {% elif status == 'RETURNED' %}
+                            <span style="color: red; font-weight: 600;">Returned {{ item.seller_order.updated_at|date:"d-M-Y" }}</span>
+                        {% elif status == 'REFUNDED' %}
+                            <span style="color: red; font-weight: 600;">Refunded {{ item.seller_order.updated_at|date:"d-M-Y" }}</span>
+                        {% elif status == 'SHIPPED' or status == 'PACKED' %}
+                            <span style="color: orange; font-weight: 600;">{{ status|title }} {{ item.seller_order.updated_at|date:"d-M-Y" }}</span>
+                        {% else %}
+                            <span style="color: grey; font-weight: 600;">{{ status|title }}</span>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <!-- Empty State -->
+    <div class="d-flex flex-column align-items-center justify-content-center text-center mt-5 pt-4">
+        <div style="width: 120px; height: 120px; background-color: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+            <i class="bi bi-box-seam" style="font-size: 50px; color: #ccc;"></i>
+        </div>
+        <h5 class="fw-bold mb-2" style="font-size: 18px; color: #333;">No Orders Yet</h5>
+        <p class="text-muted mb-4" style="font-size: 14px; max-width: 250px;">
+            You haven't placed any orders yet. Start exploring our collection!
+        </p>
+        <a href="{% url 'customer_home' %}" class="btn btn-danger px-5 py-2 rounded" style="font-weight: 600; font-size: 15px; background-color: #b94a2c; border: none;">
+            Start Shopping
+        </a>
+    </div>
+{% endif %}

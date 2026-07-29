@@ -1,0 +1,27 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Garud | Seller Welcome{% endblock %}
+
+{% block All_Content %}
+<div class="d-flex flex-column justify-content-center align-items-center px-4" style="height: 100vh; background-color: #f8f9fa;">
+    <div class="text-center bg-white p-5 rounded shadow-sm w-100" style="max-width: 400px;">
+        <div class="mb-4">
+            <img src="{% static 'images/favicon/app-icon-web-favicon.png' %}" alt="Garud Logo" style="width: 100px; height: 100px; object-fit: contain;">
+        </div>
+        
+        <h2 class="mb-3" style="font-weight: 700; color: #333;">Welcome to Garud</h2>
+        <p class="text-muted mb-4" style="font-size: 1.1rem;">
+            You have successfully created your Seller account. To start selling your handmade products, please complete your registration.
+        </p>
+
+        <a href="{% url 'seller_onboarding_step' 1 %}" class="btn btn-primary w-100 py-3 mb-3" style="font-size: 1.1rem; border-radius: 8px;">
+            Continue Registration
+        </a>
+        
+        <a href="{% url 'logout' %}" class="btn btn-outline-secondary w-100 py-3" style="font-size: 1.1rem; border-radius: 8px;">
+            Logout
+        </a>
+    </div>
+</div>
+{% endblock %}

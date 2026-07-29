@@ -1,0 +1,54 @@
+{% extends 'base/base.html' %}
+{% load static %} 
+
+{% block title %}Language Preference{% endblock title %}
+
+{% block MetaTags %}
+    <meta name="google" content="notranslate">
+{% endblock MetaTags %}
+
+{% block allStyles %}{% endblock allStyles %}
+
+{% block allCssFiles %}
+<link rel="stylesheet" href="{% static 'css/account/language_preference.css' %}">
+{% endblock %}
+
+{% block All_Content %}
+    <!-- Removed Cookie Modal for streamlined flow -->
+
+    <div id="language-section">
+        
+        <form id="language-form" >
+            {% csrf_token %}
+            {% for language in languages %}
+                <label class="language-option" for="language_{{ language.id }}">
+                    <input type="radio" name="language" id="language_{{ language.id }}" value="{{ language.name }}" {% if forloop.first %}checked{% endif %} required>
+                    <span class="language-label">
+                        {{ language.name }}
+                        {% if language.name == 'Hindi' %} (हिन्दी)
+                        {% elif language.name == 'Bengali' %} (বাংলা)
+                        {% elif language.name == 'English' %} (English)
+                        {% elif language.name == 'Marathi' %} (मराठी)
+                        {% elif language.name == 'Tamil' %} (தமிழ்)
+                        {% elif language.name == 'Gujarati' %} (ગુજરાતી)
+                        {% elif language.name == 'Punjabi' %} (ਪੰਜਾਬੀ)
+                        {% elif language.name == 'Telugu' %} (తెలుగు)
+                        {% elif language.name == 'Urdu' %} (اردو)
+                        {% elif language.name == 'Malayalam' %} (മലയാളം)
+                        {% else %} ({{ language.name }})
+                        {% endif %}
+                    </span>
+                </label>
+            {% endfor %}
+        </form>
+
+    </div>
+{% endblock %}
+
+{% block AllScript %}
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+                integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+                crossorigin="anonymous"></script>
+    <script src="{% static 'js/account/language_preference.js' %}"></script>
+    <script>initLanguagePreference();</script>
+{% endblock %}

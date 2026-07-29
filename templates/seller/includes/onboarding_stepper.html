@@ -1,0 +1,125 @@
+<style>
+.stepper-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 20px 10px;
+    margin-bottom: 20px;
+}
+.stepper-line {
+    position: absolute;
+    top: 35px;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    border-top: 2px dotted #C73B27;
+    z-index: 1;
+}
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    background: transparent;
+}
+.step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+.step-active .step-circle {
+    background-color: #C73B27;
+    color: white;
+}
+.step-inactive .step-circle {
+    background-color: #F8E5E2;
+    color: #C73B27;
+}
+.step-label {
+    font-size: 10px;
+    color: #333;
+    text-align: center;
+    width: 40px;
+    line-height: 1.2;
+}
+@keyframes micIdleBreathing {
+    0% {
+        box-shadow: 
+            0 0 0 2px rgba(199, 59, 39, 0.8), 
+            0 0 0 12px rgba(199, 59, 39, 0.3),
+            0 0 0 28px rgba(199, 59, 39, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 0 0 2px rgba(199, 59, 39, 0.8), 
+            0 0 0 18px rgba(199, 59, 39, 0.25),
+            0 0 0 40px rgba(199, 59, 39, 0.05);
+    }
+    100% {
+        box-shadow: 
+            0 0 0 2px rgba(199, 59, 39, 0.8), 
+            0 0 0 12px rgba(199, 59, 39, 0.3),
+            0 0 0 28px rgba(199, 59, 39, 0.1);
+    }
+}
+.garud-mic-static-radar {
+    background-color: #C73B27 !important;
+    border: 4px solid white !important;
+    animation: micIdleBreathing 2.5s ease-in-out infinite !important;
+    transition: all 0.3s ease;
+}
+.garud-mic-static-radar i {
+    color: white !important;
+}
+</style>
+
+<div class="stepper-container">
+    <div class="stepper-line"></div>
+    
+    <div class="step-item {% if step >= 1 %}step-active{% else %}step-inactive{% endif %}">
+        <div class="step-circle">1</div>
+        <div class="step-label" data-translate="photo">फोटो</div>
+    </div>
+    
+    <div class="step-item {% if step >= 2 %}step-active{% else %}step-inactive{% endif %}">
+        <div class="step-circle">2</div>
+        <div class="step-label" data-translate="name">नाम</div>
+    </div>
+    
+    <div class="step-item {% if step >= 3 %}step-active{% else %}step-inactive{% endif %}">
+        <div class="step-circle">3</div>
+        <div class="step-label" data-translate="aadhaar_number">आधार कार्ड नंबर</div>
+    </div>
+    
+    <div class="step-item {% if step >= 4 %}step-active{% else %}step-inactive{% endif %}">
+        <div class="step-circle">4</div>
+        <div class="step-label" data-translate="mobile_number">मोबाइल नंबर</div>
+    </div>
+    
+    <div class="step-item {% if step >= 5 %}step-active{% else %}step-inactive{% endif %}">
+        <div class="step-circle">5</div>
+        <div class="step-label" data-translate="gst_number">GST नंबर</div>
+    </div>
+    
+    <div class="step-item {% if step >= 6 %}step-active{% else %}step-inactive{% endif %}">
+        <div class="step-circle">6</div>
+        <div class="step-label" data-translate="shop_name">दुकान नाम</div>
+    </div>
+    
+    <div class="step-item {% if step >= 7 %}step-active{% else %}step-inactive{% endif %}">
+        <div class="step-circle">7</div>
+        <div class="step-label" data-translate="address">पता</div>
+    </div>
+    
+    <div class="step-item {% if step >= 8 %}step-active{% else %}step-inactive{% endif %}">
+        <div class="step-circle">8</div>
+        <div class="step-label" data-translate="bank_details">बैंक विवरण</div>
+    </div>
+</div>

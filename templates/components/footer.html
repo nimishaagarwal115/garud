@@ -1,0 +1,53 @@
+{% load static %}
+<footer class="mobile-footer">
+  <div class="footer-nav">
+    <ul class="footer-menu">
+      <li class="footer-item list {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+        <a href="{% url 'product_list' %}">
+          <span class="icon"><img src="{% static 'images/components/footer_icons/utpad_suchi.svg' %}" alt="Search" class="icon"></span>
+          <span class="text notranslate" translate="no">उत्पाद सूची</span>
+        </a>
+      </li>
+      <li class="footer-item list {% if request.resolver_match.url_name == 'seller_help' %}active{% endif %}">
+        <a href="{% url 'seller_help' %}">
+          <span class="icon"><img src="{% static 'images/components/footer_icons/sahayak.png' %}" alt="Help" class="icon"></span>
+          <span class="text notranslate" translate="no">सहायता</span>
+        </a>
+      </li>
+      <li class="footer-item center-item list {% if request.resolver_match.url_name == 'product_selection' or request.resolver_match.url_name == 'upload_wizard' %}active{% endif %}">
+        <a href="{% url 'product_selection' %}">
+          <span class="icon"><img src="{% static 'images/components/footer_icons/utpad_jode.svg' %}" alt="Search" class="icon"></span>
+          <span class="text notranslate" translate="no">उत्पाद जोड़ें</span>
+        </a>
+      </li>
+      <li class="footer-item list {% if 'seller-orders' in request.path %}active{% endif %}"> 
+        <a href="{% url 'seller_orders_list' %}">
+          <span class="icon"><img src="{% static 'images/components/footer_icons/order.svg' %}" alt="Search" class="icon"></span>
+          <span class="text notranslate" translate="no">ऑर्डर</span>
+        </a>
+      </li>
+      <li class="footer-item list {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %}">
+        <a href="{% url 'user_profile' %}">
+          <span class="icon">
+            {% if request.user.is_authenticated and request.user.photo %}
+                <img src="{{ request.user.photo.url }}" alt="Profile" class="profile-pic" style="border-radius: 50%; object-fit: cover;">
+            {% else %}
+                <img src="{% static 'images/account/profile.png' %}" alt="Profile" class="profile-pic" style="border-radius: 50%; object-fit: cover;">
+            {% endif %}
+          </span>
+          <span class="text notranslate" translate="no">रूपरेखा</span>
+        </a>
+      </li>
+      <div class="indicator"></div>
+    </ul>
+  </div>
+</footer>
+<script>
+  const items = document.querySelectorAll('.list');
+  items.forEach(item =>
+    item.addEventListener('click', () => {
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    })
+  );
+</script>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Garud - Coming Soon</title>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ff6a3d;
+      --secondary: #ffb36b;
+      --dark: #181818;
+      --light: #fff6f0;
+      --accent: #f7c873;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: var(--dark);
+      color: #fff;
+    }
+    header {
+      background: var(--light);
+      padding: 16px 0 0 0;
+      text-align: center;
+    }
+    .logo {
+      max-width: 120px;
+      margin-bottom: 8px;
+    }
+    .coming-soon-section {
+      background: url('your-background-image.jpg') center/cover no-repeat;
+      padding: 60px 20px 40px 20px;
+      text-align: center;
+      position: relative;
+    }
+    .coming-soon-title {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 2px;
+      margin: 0 0 10px 0;
+    }
+    .coming-soon-subtitle {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--primary);
+      display: inline-block;
+      padding: 0 24px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .stay-tuned {
+      display: block;
+      font-size: 0.9rem;
+      color: #fff;
+      background: var(--secondary);
+      border-radius: 12px;
+      padding: 2px 12px;
+      margin: 8px auto 0 auto;
+      width: fit-content;
+    }
+    .main-headline {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 24px 0 0 0;
+      color: #fff;
+    }
+    .about-section {
+      background: var(--light);
+      color: var(--dark);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .about-text {
+      flex: 1 1 320px;
+      min-width: 260px;
+      max-width: 400px;
+      margin-right: 32px;
+    }
+    .about-text h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+    .about-text span {
+      color: var(--primary);
+    }
+    .about-text p {
+      font-size: 1rem;
+      margin: 0;
+      color: #444;
+    }
+    .about-img {
+      flex: 1 1 320px;
+      min-width: 260px;
+      max-width: 400px;
+      text-align: center;
+    }
+    .about-img img {
+      width: 100%;
+      max-width: 350px;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    }
+    .difference-section {
+      background: var(--dark);
+      padding: 48px 20px 32px 20px;
+      text-align: center;
+    }
+    .difference-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    .difference-diagram {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 32px;
+      margin-top: 24px;
+    }
+    .difference-center {
+      background: #fff;
+      color: var(--dark);
+      font-weight: 700;
+      border-radius: 50%;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      margin: 0 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .difference-item {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      width: 110px;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 0 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .difference-item:nth-child(2n) {
+      background: var(--secondary);
+      color: var(--dark);
+    }
+    .who-section {
+      background: var(--light);
+      color: var(--dark);
+      padding: 48px 20px 32px 20px;
+      text-align: center;
+    }
+    .who-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 32px;
+    }
+    .who-cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+    }
+    .who-card {
+      background: #181818;
+      color: #fff;
+      border-radius: 16px;
+      padding: 32px 24px;
+      min-width: 200px;
+      max-width: 240px;
+      flex: 1 1 180px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .who-card span {
+      display: block;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    .footer {
+      background: var(--dark);
+      color: #fff;
+      padding: 32px 20px 24px 20px;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 0 0 32px 32px;
+      position: relative;
+      z-index: 2;
+    }
+    .footer small {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 400;
+      margin-top: 8px;
+      color: #ccc;
+    }
+    @media (max-width: 900px) {
+      .about-section {
+        flex-direction: column;
+        text-align: center;
+      }
+      .about-text, .about-img {
+        margin: 0 0 24px 0;
+        max-width: 100%;
+      }
+      .difference-diagram {
+        flex-direction: column;
+        gap: 18px;
+      }
+      .difference-center, .difference-item {
+        margin: 0 auto;
+      }
+      .who-cards {
+        flex-direction: column;
+        gap: 18px;
+      }
+    }
+    @media (max-width: 600px) {
+      .coming-soon-title { font-size: 2rem; }
+      .coming-soon-subtitle { font-size: 1.5rem; }
+      .about-section, .difference-section, .who-section, .footer {
+        padding: 24px 8px;
+      }
+      .difference-center, .difference-item {
+        width: 90px; height: 90px; font-size: 0.9rem;
+      }
+      .who-card { padding: 20px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="/Garud landing page assets/logo@3x.png" alt="Garud Logo" class="logo">
+  </header>
+  <section class="coming-soon-section">
+    <div class="coming-soon-title">COMING</div> 
+    <div class="coming-soon-subtitle">SOON</div>
+    <span class="stay-tuned">STAY TUNED!</span>
+    <div class="main-headline">
+      A Revolutionary Platform Connecting India’s Village Artisans to the Global Market
+    </div>
+  </section>
+  <section class="about-section">
+    <div class="about-text">
+      <h2>About <span>Garud</span></h2>
+      <p>
+        Garud is a powerful digital movement designed to uplift rural India by enabling small artisans and producers to access the global marketplace, directly and fairly.
+      </p>
+    </div>
+    <div class="about-img">
+    <img src="/Garud landing page assets/Artboard 5.png" alt="Village Artisan">
+    </div>
+  </section>
+  <section class="difference-section">
+    <h2>What Makes Garud Different?</h2>
+    <div class="difference-diagram">
+      <div class="difference-item">Direct Global Market Access</div>
+      <div class="difference-item">Skill Development & Upliftment</div>
+      <div class="difference-center">What Makes Garud Different?</div>
+      <div class="difference-item">50% Revenue Sharing</div>
+      <div class="difference-item">Robust Infrastructure</div>
+      <div class="difference-item">Aligned with Digital India</div>
+    </div>
+  </section>
+  <section class="who-section">
+    <h2>Who Is It For?</h2>
+    <div class="who-cards">
+      <div class="who-card">
+        <span>01</span>
+        Small village based artisans
+      </div>
+      <div class="who-card">
+        <span>02</span>
+        Local producers & traditional craftsmen
+      </div>
+      <div class="who-card">
+        <span>03</span>
+        Rural youth with creative potential
+      </div>
+      <div class="who-card">
+        <span>04</span>
+        NGOs and Self Help Groups looking to digitize their reach
+      </div>
+    </div>
+  </section>
+  <footer class="footer">
+    Garud Is More Than Just A Platform—It’s a Movement.
+    <small>
+      Join us in shaping a future where rural India leads the digital economy, proudly and profitably.
+    </small>
+  </footer>
+</body>
+</html>

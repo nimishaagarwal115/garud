@@ -1,0 +1,137 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit Address{% else %}Add A New Address{% endif %}{% endblock %}
+
+{% block All_Content %}
+<div class="address-form-container bg-light" style="min-height: 100vh; padding-bottom: 80px;">
+    <!-- Simple Header with Back Button -->
+    <div class="bg-danger text-white d-flex align-items-center px-3 py-2" style="height: 60px;">
+        <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'customer_address_list' %}{% endif %}" class="text-white text-decoration-none me-3">
+            <i class="bi bi-arrow-left fs-4"></i>
+        </a>
+        <div class="input-group bg-white rounded flex-grow-1" style="height: 40px;">
+            <span class="input-group-text bg-white border-0 py-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" class="form-control border-0 shadow-none py-0" placeholder="Pot">
+            <span class="input-group-text bg-white border-0 py-0"><i class="bi bi-camera text-danger"></i></span>
+            <span class="input-group-text bg-white border-0 py-0"><i class="bi bi-mic text-danger"></i></span>
+        </div>
+    </div>
+
+    <div class="container px-3 mt-4">
+        <!-- Title -->
+        <h4 class="fw-bold mb-4" style="color: #212121;" data-translate="{% if is_edit %}edit_address{% else %}add_new_address{% endif %}">
+            {% if is_edit %}Edit Address{% else %}Add A New Address{% endif %}
+        </h4>
+
+        <form method="post" class="bg-white p-3 shadow-sm rounded">
+            {% csrf_token %}
+            {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold text-dark" style="font-size: 14px;">Full Name <span class="text-danger">*</span></label>
+                <input type="text" name="full_name" class="form-control form-control-lg fs-6" value="{{ address.full_name|default:'' }}" placeholder="John Doe" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-dark" style="font-size: 14px;">Mobile No. <span class="text-danger">*</span></label>
+                <input type="text" name="mobile_number" class="form-control form-control-lg fs-6" value="{{ address.mobile_number|default:'' }}" placeholder="9876543210" required pattern="[0-9]{10,15}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-dark" style="font-size: 14px;">Flat, House No., Building, Company, Apartment <span class="text-danger">*</span></label>
+                <input type="text" name="flat_house_building" class="form-control form-control-lg fs-6" value="{{ address.flat_house_building|default:'' }}" placeholder="A-170" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-dark" style="font-size: 14px;">Area, Street, Sector, Village <span class="text-danger">*</span></label>
+                <input type="text" name="area_street_village" class="form-control form-control-lg fs-6" value="{{ address.area_street_village|default:'' }}" placeholder="Manuhar Nagar, Gulab Vihar" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-dark" style="font-size: 14px;">Pincode <span class="text-danger">*</span></label>
+                <input type="text" id="pincode" name="pincode" class="form-control form-control-lg fs-6" value="{{ address.pincode|default:'' }}" placeholder="302034" required pattern="[0-9]{6}">
+                <small id="pincode-status" class="mt-1 d-block" style="font-size: 12px; min-height: 18px;"></small>
+            </div>
+
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold text-dark" style="font-size: 14px;">Town/City <span class="text-danger">*</span></label>
+                    <input type="text" id="town_city" name="town_city" class="form-control form-control-lg fs-6" value="{{ address.town_city|default:'' }}" placeholder="Jaipur" required>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold text-dark" style="font-size: 14px;">State <span class="text-danger">*</span></label>
+                    <!-- In a real app this would be a select. We will populate it from PIN API -->
+                    <input type="text" id="state" name="state" class="form-control form-control-lg fs-6" value="{{ address.state|default:'' }}" placeholder="Rajasthan" required>
+                </div>
+            </div>
+
+            <div class="form-check mb-4 mt-2">
+                <input class="form-check-input" type="checkbox" name="is_default" id="isDefaultCheck" {% if address.is_default %}checked{% endif %} style="transform: scale(1.2); margin-right: 8px;">
+                <label class="form-check-label text-muted" for="isDefaultCheck" style="font-size: 14px;">
+                    Make this my default address
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-danger w-100 py-3 fw-bold fs-6" style="background-color: #d32f2f; border-radius: 8px;" data-translate="use_this_address">Use This Address</button>
+        </form>
+    </div>
+    
+    {% include 'components/costumerfooter.html' %}
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const pincodeInput = document.getElementById("pincode");
+        const pincodeStatus = document.getElementById("pincode-status");
+        const cityInput = document.getElementById("town_city");
+        const stateInput = document.getElementById("state");
+
+        async function verifyPincode(pin) {
+            if (pin.length !== 6) return;
+            
+            pincodeStatus.className = "text-primary mt-1 d-block";
+            pincodeStatus.textContent = "Loading...";
+            
+            try {
+                const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+                const data = await res.json();
+                
+                if (data && data[0] && data[0].Status === "Success") {
+                    pincodeStatus.className = "text-success mt-1 d-block";
+                    pincodeStatus.textContent = "Verified";
+                    
+                    const postOffice = data[0].PostOffice[0];
+                    cityInput.value = postOffice.District;
+                    stateInput.value = postOffice.State;
+                } else {
+                    pincodeStatus.className = "text-danger mt-1 d-block";
+                    pincodeStatus.textContent = "Invalid PIN Code";
+                }
+            } catch (err) {
+                pincodeStatus.className = "text-danger mt-1 d-block";
+                pincodeStatus.textContent = "Network error, please enter manually";
+            }
+        }
+
+        pincodeInput.addEventListener("input", (e) => {
+            const val = e.target.value.replace(/\D/g, '');
+            e.target.value = val;
+            if (val.length === 6) {
+                verifyPincode(val);
+            } else {
+                pincodeStatus.textContent = "";
+            }
+        });
+        
+        // Initial check if pre-filled
+        if (pincodeInput.value.length === 6) {
+            verifyPincode(pincodeInput.value);
+        }
+    });
+</script>
+{% endblock %}

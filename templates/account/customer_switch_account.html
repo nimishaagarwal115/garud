@@ -1,0 +1,158 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+
+{% block title %}Switch Account{% endblock %}
+
+{% block styles %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+    }
+    
+    /* Hide the bell from the global header on this specific page */
+    .notification-btn {
+        display: none !important;
+    }
+    
+    .switch-account-container {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 24px;
+        background-color: #ffffff;
+        min-height: calc(100vh - 60px);
+    }
+    
+    .page-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 24px;
+    }
+    
+    .account-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .account-card:hover {
+        background-color: #f0f0f0;
+    }
+    
+    .account-card.active {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .account-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .account-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #666666;
+    }
+    
+    .account-email {
+        font-size: 14px;
+        color: #1a1a1a;
+    }
+    
+    .active-icon {
+        color: #28a745;
+        font-size: 20px;
+        font-weight: bold;
+    }
+    
+    .btn-add-account {
+        display: block;
+        width: 100%;
+        padding: 16px;
+        background-color: #d94b2b;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 24px;
+        text-align: center;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+    
+    .btn-add-account:hover {
+        background-color: #c24127;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="switch-account-container">
+    <h1 class="page-title">Switch Account</h1>
+    
+    <div id="account-list">
+        {% for account in accounts %}
+        <div class="account-card {% if account.is_active %}active{% endif %}" onclick="switchAccount('{{ account.id }}', {{ account.is_active|yesno:'true,false' }})">
+            <div class="account-info">
+                <span class="account-name">{{ account.name }}</span>
+                <span class="account-email">{% if account.email %}{{ account.email }}{% else %}{{ account.mobile }}{% endif %}</span>
+            </div>
+            {% if account.is_active %}
+            <div class="active-icon">
+                &#10003;
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'customer_login' %}" class="btn-add-account">Add Account</a>
+</div>
+
+{% csrf_token %}
+
+<script>
+    function switchAccount(userId, isActive) {
+        if (isActive) return;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch("{% url 'customer_switch_account_action' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: new URLSearchParams({
+                'user_id': userId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'switched') {
+                window.location.href = "{% url 'customer_home' %}";
+            } else if (data.status === 'requires_otp') {
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.message || 'An error occurred.');
+            }
+        })
+        .catch(error => {
+            console.error('Error switching account:', error);
+            alert('Failed to switch account.');
+        });
+    }
+</script>
+{% endblock %}

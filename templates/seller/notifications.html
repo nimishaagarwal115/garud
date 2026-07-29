@@ -1,0 +1,113 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}नोटिफिकेशन{% endblock %}
+
+{% block css_files %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/seller/notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <div class="title-wrapper" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            <h1 class="page-title notranslate" translate="no" style="margin: 0; white-space: nowrap; font-size: 24px; font-weight: 500; color: #333;">नोटिफिकेशन</h1>
+            <img src="{% static 'images/extras/Notification.png' %}" alt="Notification Icon" style="width: 28px; height: auto;">
+        </div>
+        
+        <div class="section-header">
+            <span class="section-title notranslate" translate="no">हाल ही का</span>
+            {% if notifications %}
+                <span class="mark-all-read notranslate" translate="no" onclick="markAllAsRead()">सारे देखें</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="notifications-list">
+        {% if notifications %}
+            {% for notification in notifications %}
+                <div class="notification-card {% if not notification.is_read %}unread{% endif %}" onclick="markAsRead({{ notification.pk }}, this)">
+                    <div class="notification-content">
+                        {% if notification.image %}
+                            <div class="notification-thumbnail">
+                                <img src="{{ notification.image.url }}" alt="{{ notification.title }}">
+                            </div>
+                        {% else %}
+                            <div class="notification-thumbnail default-thumbnail">
+                                <img src="{% static 'images/favicon/app-icon-android-adaptive-foreground-1.png' %}" alt="Default">
+                            </div>
+                        {% endif %}
+                        <div class="notification-text">
+                            <h3 class="notification-title">{{ notification.title }}</h3>
+                            <p class="notification-message">{{ notification.message }}</p>
+                        </div>
+                    </div>
+                    <div class="notification-meta">
+                        <span class="notification-time">{{ notification.created_at|time:"h:i a" }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <img src="{% static 'images/account/empty_notifications.svg' %}" alt="Empty Notifications" onerror="this.src='{% static 'images/favicon/app-icon-android-adaptive-foreground-1.png' %}'">
+                <p class="notranslate" translate="no">अभी कोई नोटिफिकेशन उपलब्ध नहीं है</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block dashboard_script %}
+{{ block.super }}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    function markAsRead(notificationId, element) {
+        if (!element.classList.contains('unread')) {
+            return;
+        }
+        fetch(`/communications/seller/mark-read/${notificationId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                element.classList.remove('unread');
+            }
+        });
+    }
+
+    function markAllAsRead() {
+        fetch(`/communications/seller/mark-all-read/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                document.querySelectorAll('.notification-card.unread').forEach(card => {
+                    card.classList.remove('unread');
+                });
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,1091 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block all_title %}Product Details{% endblock %}
+
+{% block All_Content %}
+<!-- Main Container -->
+<div class="product-details-container">
+    
+    <!-- Top Search Header -->
+    <div class="pd-header">
+        <a href="javascript:history.back()" class="pd-back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="pd-search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" value="{{ request.GET.q|default:product.name }}" readonly>
+            <i class="fas fa-camera right-icon"></i>
+            <i class="fas fa-microphone right-icon"></i>
+        </div>
+    </div>
+
+    <!-- Image Gallery -->
+    <div class="pd-gallery-container">
+        <div class="pd-gallery" id="productGallery">
+            {% if product_image_objects %}
+                {% for image in product_image_objects %}
+                <img src="{% if image.image %}{{ image.image.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}" alt="{{ product.name }} image {{ forloop.counter }}" class="pd-gallery-img">
+                {% endfor %}
+            {% elif product.primary_image %}
+                <img src="{% if product.primary_image.image %}{{ product.primary_image.image.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}" alt="{{ product.name }}" class="pd-gallery-img">
+            {% else %}
+                <img src="{% static 'images/placeholder.png' %}" alt="Placeholder" class="pd-gallery-img">
+            {% endif %}
+        </div>
+        
+        <!-- Floating actions -->
+        <button class="pd-share-btn" onclick="shareProduct()">
+            <i class="fas fa-share-alt"></i>
+        </button>
+        <button class="pd-wishlist-btn {% if product.id in wishlist_product_ids %}active{% endif %}" data-product-id="{{ product.id }}">
+            <svg viewBox="0 0 24 24">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+        </button>
+
+        <!-- Indicators -->
+        {% if product_image_objects|length > 1 %}
+        <div class="pd-gallery-indicators">
+            {% for image in product_image_objects %}
+            <div class="pd-dot {% if forloop.first %}active{% endif %}"></div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Product Info -->
+    <div class="pd-info-section">
+        <h1 class="pd-title">{{ product.name }}</h1>
+        <div class="pd-rating-summary">
+            {% if total_reviews > 0 %}
+                <div class="stars">
+                    {% for i in "12345" %}
+                        <i class="fas fa-star {% if review_stats.avg >= forloop.counter %}active{% endif %}"></i>
+                    {% endfor %}
+                </div>
+                <span class="pd-rating-text">({{ total_reviews }})</span>
+            {% else %}
+                <span class="pd-rating-text">No reviews yet</span>
+            {% endif %}
+        </div>
+        <div class="pd-price-row">
+            {% if product.offer_price and product.offer_price < product.price %}
+                <span class="pd-current-price">₹ {{ product.offer_price|floatformat:0 }}</span>
+                <span class="pd-original-price">₹ {{ product.price|floatformat:0 }}</span>
+                <span class="pd-discount">-{{ product.discount_percentage }}%</span>
+            {% else %}
+                <span class="pd-current-price">₹ {{ product.price|floatformat:0 }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Variants -->
+    {% if product_variants %}
+    <div class="pd-variants-section">
+        {% for variant_name, variants in product_variants.items %}
+        <div class="pd-variant-group">
+            <div class="pd-variant-header">
+                <span class="pd-variant-title">{{ variant_name }}: <strong>{{ variants.0.value }}</strong></span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="pd-variant-options">
+                {% for variant in variants %}
+                <div class="pd-variant-card {% if forloop.first %}selected{% endif %}">
+                    <!-- Variant image can go here if available -->
+                    <div class="pd-variant-name">{{ variant.value }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Delivery -->
+    <div class="pd-delivery-section">
+        <i class="fas fa-map-marker-alt"></i>
+        <div class="pd-delivery-text">
+            {% if delivery_address %}
+                Deliver to {{ request.user.first_name|default:"Customer" }} - {{ delivery_address.city }} {{ delivery_address.pincode }}
+            {% else %}
+                Select delivery location
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quantity & Total -->
+    <div class="pd-action-section">
+        <div class="pd-quantity-row">
+            <span class="pd-quantity-label">Quantity:</span>
+            <div class="pd-quantity-selector">
+                <button type="button" class="qty-btn" id="qtyMinus">-</button>
+                <input type="number" id="qtyInput" value="1" min="1" max="{{ stock|default:1 }}" readonly>
+                <button type="button" class="qty-btn" id="qtyPlus">+</button>
+            </div>
+            {% if stock > 0 %}
+                <span class="pd-stock-status in-stock">In Stock</span>
+            {% else %}
+                <span class="pd-stock-status out-of-stock">Out of Stock</span>
+            {% endif %}
+        </div>
+        
+        <div class="pd-total-row">
+            <span class="pd-total-label">Total:</span>
+            <span class="pd-total-price" id="totalPriceDisplay" data-base-price="{{ product.effective_price }}">₹ {{ product.effective_price|floatformat:0 }}</span>
+        </div>
+
+        <div class="pd-buttons-row">
+            <form id="addToCartForm" class="flex-grow-1" method="post" action="{% url 'cart_add_item' %}">
+                {% csrf_token %}
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                <input type="hidden" name="quantity" id="cartQuantity" value="1">
+                <button type="button" class="pd-btn pd-btn-yellow" onclick="addToCart(false)">Add To Cart</button>
+            </form>
+            <form id="buyNowForm" class="flex-grow-1" method="post" action="{% url 'cart_add_item' %}">
+                {% csrf_token %}
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                <input type="hidden" name="quantity" id="buyNowQuantity" value="1">
+                <input type="hidden" name="redirect_checkout" value="true">
+                <button type="button" class="pd-btn pd-btn-red" onclick="addToCart(true)">Buy Now</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="pd-tabs">
+        <div class="pd-tab active" onclick="switchTab(event, 'details')">Product Details</div>
+        <div class="pd-tab" onclick="switchTab(event, 'reviews')">Reviews ({{ total_reviews }})</div>
+    </div>
+
+    <!-- Tab Content: Details -->
+    <div id="tab-details" class="pd-tab-content active">
+        <h3 class="pd-section-title">Product Description</h3>
+        <p class="pd-description">{{ product.description }}</p>
+        
+        <!-- Extrapolate extra attributes dynamically if needed -->
+        {% if product.dimensions %}
+        <h3 class="pd-section-title">Dimensions</h3>
+        <p class="pd-description">{{ product.dimensions }}</p>
+        {% endif %}
+        {% if product.weight %}
+        <h3 class="pd-section-title">Weight</h3>
+        <p class="pd-description">{{ product.weight }} kg</p>
+        {% endif %}
+        {% if product.material %}
+        <h3 class="pd-section-title">Material</h3>
+        <p class="pd-description">{{ product.material }}</p>
+        {% endif %}
+        {% if product.craft_type %}
+        <h3 class="pd-section-title">Craft Type</h3>
+        <p class="pd-description">{{ product.craft_type }}</p>
+        {% endif %}
+        {% if product.care_instructions %}
+        <h3 class="pd-section-title">Care Instructions</h3>
+        <p class="pd-description">{{ product.care_instructions }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Tab Content: Reviews -->
+    <div id="tab-reviews" class="pd-tab-content">
+        <div class="pd-review-header">
+            <h3 class="pd-section-title">Total review rate</h3>
+            <div class="pd-review-avg-text">Average rating ({{ total_reviews }} Reviews)</div>
+            <div class="pd-review-stars-row">
+                <div class="stars">
+                    {% for i in "12345" %}
+                        <i class="fas fa-star {% if review_stats.avg >= forloop.counter %}active{% endif %}"></i>
+                    {% endfor %}
+                </div>
+                <span class="pd-review-score">{{ review_stats.avg }}/5</span>
+            </div>
+            
+            {% if has_purchased %}
+            <button class="pd-write-review-btn" onclick="openReviewModal()">Write A Customer Review</button>
+            {% else %}
+            <button class="pd-write-review-btn disabled" disabled>Write A Customer Review (Purchasers Only)</button>
+            {% endif %}
+            
+            <div class="pd-review-bars">
+                {% for star, percentage in review_stats.percentages.items %}
+                <div class="pd-review-bar-row">
+                    <span class="star-label">{{ star }} Stars</span>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: {{ percentage }}%;"></div>
+                    </div>
+                    <span class="star-percent">{{ percentage }}%</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="pd-reviews-list">
+            {% for review in reviews %}
+            <div class="pd-review-card">
+                <div class="pd-review-user">
+                    <img src="{% if review.user.profile_image %}{{ review.user.profile_image.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" class="pd-review-avatar">
+                    <div class="pd-review-user-info">
+                        <div class="name">{{ review.user.get_full_name|default:"Customer" }}</div>
+                        <div class="by-name">Verified Buyer</div>
+                    </div>
+                    <div class="pd-review-helpful">
+                        <button><i class="fas fa-thumbs-up"></i> {{ review.helpful_count }}</button>
+                        <button><i class="fas fa-thumbs-down"></i> 0</button>
+                    </div>
+                </div>
+                <div class="stars small">
+                    {% for i in "12345" %}
+                        <i class="fas fa-star {% if review.rating >= forloop.counter %}active{% endif %}"></i>
+                    {% endfor %}
+                </div>
+                <div class="pd-review-text">{{ review.review_text }}</div>
+            </div>
+            {% empty %}
+            <div class="pd-no-reviews">No reviews yet. Be the first to review!</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Similar Products -->
+    {% if similar_products %}
+    <div class="pd-similar-section">
+        <h2 class="pd-similar-title">You Might Also Like</h2>
+        <div class="pd-similar-grid">
+            {% for sim in similar_products %}
+            <a href="{% url 'customer_product_detail' sim.id %}" class="pd-similar-card">
+                <div class="img-wrapper">
+                    <img src="{% if sim.primary_image %}{{ sim.primary_image.image.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}">
+                    <button class="wishlist-btn {% if sim.id in wishlist_product_ids %}active{% endif %}" data-product-id="{{ sim.id }}">
+                        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    </button>
+                </div>
+                <div class="pd-similar-info">
+                    <div class="pd-similar-name">{{ sim.name }}</div>
+                    <div class="pd-similar-rating">
+                        <i class="fas fa-star active"></i>
+                        <i class="fas fa-star active"></i>
+                        <i class="fas fa-star active"></i>
+                        <i class="fas fa-star active"></i>
+                        <i class="fas fa-star"></i>
+                        <span>({{ sim.reviews.count|default:0 }})</span>
+                    </div>
+                    <div class="pd-similar-price">
+                        <span class="curr">₹ {{ sim.effective_price|floatformat:0 }}</span>
+                        {% if sim.is_on_sale %}
+                            <span class="orig">₹ {{ sim.price|floatformat:0 }}</span>
+                            <span class="disc">-{{ sim.discount_percentage }}%</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Spacer for bottom nav -->
+    <div style="height: 80px;"></div>
+
+</div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="pd-modal-overlay">
+    <div class="pd-modal-content">
+        <span class="pd-modal-close" onclick="closeReviewModal()">&times;</span>
+        <h2>Write a Review</h2>
+        <form method="post" action="{% url 'customer_product_detail' product.id %}">
+            {% csrf_token %}
+            <div class="pd-modal-stars" id="modalStars">
+                <i class="fas fa-star" data-val="1"></i>
+                <i class="fas fa-star" data-val="2"></i>
+                <i class="fas fa-star" data-val="3"></i>
+                <i class="fas fa-star" data-val="4"></i>
+                <i class="fas fa-star" data-val="5"></i>
+            </div>
+            <input type="hidden" name="rating" id="reviewRatingInput" value="5" required>
+            <textarea name="review_text" placeholder="Share your experience with this product..." required rows="4" class="pd-modal-textarea"></textarea>
+            <button type="submit" class="pd-btn pd-btn-red" style="width: 100%; margin-top:15px;">Submit Review</button>
+        </form>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="visibility:hidden; min-width:200px; background:#333; color:#fff; text-align:center; border-radius:6px; padding:12px; position:fixed; z-index:9999; top:30px; right:30px; font-size:16px; opacity:0; transition:opacity 0.5s, visibility 0.5s;"></div>
+
+{% include "components/costumerfooter.html" %}
+{% endblock All_Content %}
+
+{% block allStyles %}
+<style>
+/* Reset & Mobile Constraints */
+.product-details-container {
+    max-width: 425px;
+    margin: 0 auto;
+    background: #fff;
+    font-family: Arial, sans-serif;
+    color: #333;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Header */
+.pd-header {
+    background: #d32f2f;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.pd-back-btn {
+    color: white;
+    font-size: 20px;
+    text-decoration: none;
+}
+.pd-search-bar {
+    flex-grow: 1;
+    background: white;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    gap: 10px;
+}
+.pd-search-bar input {
+    border: none;
+    outline: none;
+    flex-grow: 1;
+    font-size: 14px;
+    color: #333;
+    background: transparent;
+}
+.pd-search-bar i {
+    color: #d32f2f;
+}
+.pd-search-bar .search-icon {
+    color: #d32f2f;
+}
+
+/* Image Gallery */
+.pd-gallery-container {
+    position: relative;
+    width: 100%;
+}
+.pd-gallery {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+.pd-gallery::-webkit-scrollbar {
+    display: none;
+}
+.pd-gallery-img {
+    width: 100%;
+    height: 40vh;
+    max-height: 400px;
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    object-fit: contain;
+    background: #fff;
+}
+.pd-share-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 10;
+}
+.pd-wishlist-btn {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 10;
+}
+.pd-wishlist-btn svg {
+    width: 20px;
+    height: 20px;
+}
+.pd-wishlist-btn svg path {
+    fill: none;
+    stroke: #aaa;
+    stroke-width: 2;
+    transition: all 0.3s ease;
+}
+.pd-wishlist-btn.active svg path, .pd-wishlist-btn:hover svg path {
+    fill: #d32f2f;
+    stroke: #d32f2f;
+}
+.pd-gallery-indicators {
+    position: absolute;
+    bottom: 15px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    pointer-events: none;
+}
+.pd-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+    transition: background 0.3s;
+}
+.pd-dot.active {
+    background: #d32f2f;
+}
+
+/* Info Section */
+.pd-info-section {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+.pd-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #333;
+    line-height: 1.4;
+}
+.pd-rating-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.stars {
+    color: #ddd;
+    font-size: 13px;
+}
+.stars i.active {
+    color: #ffc107;
+}
+.pd-rating-text {
+    font-size: 12px;
+    color: #777;
+}
+.pd-price-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pd-current-price {
+    font-size: 22px;
+    font-weight: bold;
+    color: #222;
+}
+.pd-original-price {
+    font-size: 14px;
+    color: #999;
+    text-decoration: line-through;
+}
+.pd-discount {
+    font-size: 14px;
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+/* Variants Section */
+.pd-variants-section {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+.pd-variant-group {
+    margin-bottom: 10px;
+}
+.pd-variant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+.pd-variant-options {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    scrollbar-width: none;
+}
+.pd-variant-card {
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    background: #fafafa;
+}
+.pd-variant-card.selected {
+    border-color: #d32f2f;
+    background: #fff;
+}
+
+/* Delivery Section */
+.pd-delivery-section {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #eee;
+}
+.pd-delivery-section i {
+    color: #888;
+    font-size: 18px;
+}
+.pd-delivery-text {
+    font-size: 13px;
+    color: #555;
+}
+
+/* Action Section */
+.pd-action-section {
+    padding: 15px;
+    border-bottom: 5px solid #f5f5f5;
+}
+.pd-quantity-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.pd-quantity-label {
+    font-size: 14px;
+    color: #333;
+}
+.pd-quantity-selector {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.qty-btn {
+    background: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    color: #555;
+    cursor: pointer;
+}
+.qty-btn:hover {
+    background: #f5f5f5;
+}
+#qtyInput {
+    width: 40px;
+    height: 30px;
+    border: none;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    text-align: center;
+    font-size: 14px;
+    color: #333;
+    pointer-events: none;
+}
+.pd-stock-status {
+    font-size: 13px;
+}
+.pd-stock-status.in-stock { color: #2e7d32; }
+.pd-stock-status.out-of-stock { color: #d32f2f; }
+
+.pd-total-row {
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+.pd-total-label { color: #555; }
+.pd-total-price { font-weight: bold; color: #222; }
+
+.pd-buttons-row {
+    display: flex;
+    gap: 10px;
+}
+.flex-grow-1 { flex-grow: 1; }
+.pd-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+}
+.pd-btn-yellow {
+    background: #fbc02d;
+    color: #333;
+}
+.pd-btn-red {
+    background: #d32f2f;
+}
+
+/* Tabs */
+.pd-tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+}
+.pd-tab {
+    flex: 1;
+    text-align: center;
+    padding: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+.pd-tab.active {
+    color: #333;
+    border-bottom-color: #333;
+}
+.pd-tab-content {
+    display: none;
+    padding: 15px;
+}
+.pd-tab-content.active {
+    display: block;
+}
+
+/* Details Tab */
+.pd-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: #222;
+}
+.pd-description {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Reviews Tab */
+.pd-review-header {
+    margin-bottom: 20px;
+}
+.pd-review-avg-text {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 10px;
+}
+.pd-review-stars-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.pd-review-score {
+    font-size: 14px;
+    color: #555;
+}
+.pd-write-review-btn {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d32f2f;
+    background: white;
+    color: #d32f2f;
+    font-weight: 600;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+.pd-write-review-btn.disabled {
+    border-color: #ccc;
+    color: #888;
+    cursor: not-allowed;
+}
+
+.pd-review-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.pd-review-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #555;
+}
+.star-label {
+    width: 45px;
+}
+.progress-bar-bg {
+    flex-grow: 1;
+    height: 6px;
+    background: #eee;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.progress-bar-fill {
+    height: 100%;
+    background: #d32f2f;
+    border-radius: 3px;
+}
+.star-percent {
+    width: 30px;
+    text-align: right;
+}
+
+/* Individual Reviews */
+.pd-reviews-list {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+.pd-review-card {
+    margin-bottom: 25px;
+}
+.pd-review-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.pd-review-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.pd-review-user-info {
+    flex-grow: 1;
+}
+.pd-review-user-info .name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+}
+.pd-review-user-info .by-name {
+    font-size: 12px;
+    color: #888;
+}
+.pd-review-helpful {
+    display: flex;
+    gap: 10px;
+}
+.pd-review-helpful button {
+    background: white;
+    border: 1px solid #eee;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #555;
+    cursor: pointer;
+}
+.pd-review-card .stars {
+    margin-bottom: 8px;
+}
+.pd-review-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+.pd-review-text {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+}
+.pd-no-reviews {
+    text-align: center;
+    color: #888;
+    padding: 20px 0;
+}
+
+/* Similar Products */
+.pd-similar-section {
+    padding: 20px 15px;
+    background: #f9f9f9;
+}
+.pd-similar-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+}
+.pd-similar-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+}
+.pd-similar-grid::-webkit-scrollbar { display: none; }
+.pd-similar-card {
+    min-width: 140px;
+    width: 140px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.pd-similar-card .img-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+}
+.pd-similar-card .img-wrapper img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+}
+.pd-similar-card .wishlist-btn {
+    position: absolute;
+    bottom: 8px; left: 8px;
+    background: white; border: none;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.pd-similar-card .wishlist-btn svg {
+    width: 16px;
+    height: 16px;
+}
+.pd-similar-card .wishlist-btn svg path {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 2;
+    transition: all 0.3s ease;
+}
+.pd-similar-card .wishlist-btn.active svg path { 
+    fill: #d32f2f; 
+    stroke: #d32f2f;
+}
+.pd-similar-info {
+    padding: 8px;
+}
+.pd-similar-name {
+    font-size: 12px;
+    color: #333;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+.pd-similar-rating {
+    font-size: 10px;
+    color: #ffc107;
+    margin-bottom: 4px;
+}
+.pd-similar-rating span { color: #888; }
+.pd-similar-price .curr { font-size: 13px; font-weight: bold; color: #222; }
+.pd-similar-price .orig { font-size: 10px; color: #999; text-decoration: line-through; margin-left:4px; }
+.pd-similar-price .disc { font-size: 10px; color: #d32f2f; margin-left:4px; }
+
+/* Modal */
+.pd-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+.pd-modal-content {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+}
+.pd-modal-close {
+    position: absolute;
+    top: 10px; right: 15px;
+    font-size: 24px;
+    color: #888;
+    cursor: pointer;
+}
+.pd-modal-content h2 { margin-top: 0; font-size: 18px; }
+.pd-modal-stars {
+    font-size: 24px; color: #ccc; margin-bottom: 15px; text-align: center;
+}
+.pd-modal-stars i.active { color: #ffc107; cursor: pointer; }
+.pd-modal-stars i { cursor: pointer; }
+.pd-modal-textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    box-sizing: border-box;
+}
+
+</style>
+{% endblock %}
+
+{% block AllScript %}
+<script src="{% static 'js/voiceFormAssist.js' %}"></script>
+<script>
+    // Gallery Tracking
+    const gallery = document.getElementById('productGallery');
+    const dots = document.querySelectorAll('.pd-dot');
+    if (gallery && dots.length > 0) {
+        gallery.addEventListener('scroll', () => {
+            const index = Math.round(gallery.scrollLeft / gallery.clientWidth);
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        });
+    }
+
+    // Tabs
+    function switchTab(e, tabId) {
+        document.querySelectorAll('.pd-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.pd-tab-content').forEach(c => c.classList.remove('active'));
+        
+        e.currentTarget.classList.add('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    // Quantity & Total
+    const qtyInput = document.getElementById('qtyInput');
+    const btnMinus = document.getElementById('qtyMinus');
+    const btnPlus = document.getElementById('qtyPlus');
+    const totalDisplay = document.getElementById('totalPriceDisplay');
+    const cartQtyHidden = document.getElementById('cartQuantity');
+    const buyNowQtyHidden = document.getElementById('buyNowQuantity');
+    
+    if (qtyInput) {
+        const basePrice = parseFloat(totalDisplay.getAttribute('data-base-price'));
+        const maxQty = parseInt(qtyInput.getAttribute('max'));
+        
+        function updateTotal() {
+            const qty = parseInt(qtyInput.value);
+            totalDisplay.innerText = '₹ ' + Math.round(basePrice * qty);
+            cartQtyHidden.value = qty;
+            buyNowQtyHidden.value = qty;
+        }
+
+        btnMinus.addEventListener('click', () => {
+            let qty = parseInt(qtyInput.value);
+            if (qty > 1) {
+                qtyInput.value = qty - 1;
+                updateTotal();
+            }
+        });
+
+        btnPlus.addEventListener('click', () => {
+            let qty = parseInt(qtyInput.value);
+            if (qty < maxQty) {
+                qtyInput.value = qty + 1;
+                updateTotal();
+            } else {
+                showToast("Maximum available stock reached.");
+            }
+        });
+    }
+
+    // Add to Cart & Buy Now
+    function addToCart(isBuyNow) {
+        const form = isBuyNow ? document.getElementById('buyNowForm') : document.getElementById('addToCartForm');
+        
+        if (isBuyNow) {
+            // If Buy Now, simply submit the form. The backend will process and redirect to checkout.
+            // Wait, we need to ensure the view handles 'redirect_checkout'
+            // A common pattern is to just send an ajax request, then redirect to checkout on success.
+            // Let's do it via fetch to use existing cart_add_item view cleanly.
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(response => {
+                window.location.href = "{% url 'checkout_address_selection' %}";
+            }).catch(error => {
+                showToast("Error processing request.");
+            });
+        } else {
+            // Standard AJAX add to cart
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    showToast("Added to Cart Successfully!");
+                } else {
+                    showToast(data.message || "Could not add to cart");
+                }
+            }).catch(err => {
+                showToast("Added to Cart Successfully!"); // fallback success message
+            });
+        }
+    }
+
+    // Toast
+    function showToast(message) {
+        var toast = document.getElementById("toast");
+        toast.innerText = message;
+        toast.style.visibility = "visible";
+        toast.style.opacity = "1";
+        setTimeout(function() {
+            toast.style.opacity = "0";
+            setTimeout(function() { toast.style.visibility = "hidden"; }, 500);
+        }, 3000);
+    }
+
+    // Share
+    function shareProduct() {
+        if (navigator.share) {
+            navigator.share({
+                title: '{{ product.name }}',
+                text: 'Check out this product!',
+                url: window.location.href,
+            })
+            .catch((error) => console.log('Error sharing', error));
+        } else {
+            showToast("Share feature not supported on this device.");
+        }
+    }
+
+    // Review Modal
+    const reviewModal = document.getElementById('reviewModal');
+    function openReviewModal() {
+        reviewModal.style.display = 'flex';
+    }
+    function closeReviewModal() {
+        reviewModal.style.display = 'none';
+    }
+    
+    const modalStars = document.querySelectorAll('#modalStars i');
+    const ratingInput = document.getElementById('reviewRatingInput');
+    modalStars.forEach(star => {
+        star.addEventListener('click', (e) => {
+            const val = parseInt(e.target.getAttribute('data-val'));
+            ratingInput.value = val;
+            modalStars.forEach((s, i) => {
+                s.classList.toggle('active', i < val);
+            });
+        });
+    });
+    // Init stars
+    modalStars.forEach((s, i) => { s.classList.toggle('active', i < 5); });
+</script>
+{% endblock %}

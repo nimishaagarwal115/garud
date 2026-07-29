@@ -1,0 +1,27 @@
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from django.conf import settings
+
+class CustomPagination(PageNumberPagination):
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+    def get_page_size(self, request):
+        """
+        Dynamically get the page size from settings or use the default from PageNumberPagination.
+        """
+        return getattr(settings, 'REST_FRAMEWORK', {}).get('PAGE_SIZE', super().get_page_size(request))
+    
+    def get_paginated_response(self, data):
+        """
+        Override to modify the next and previous fields to show only page numbers.
+        """
+        next_page = self.page.next_page_number() if self.page.has_next() else None
+        previous_page = self.page.previous_page_number() if self.page.has_previous() else None
+
+        return Response({
+            'count': self.page.paginator.count,
+            'next': next_page,
+            'previous': previous_page,
+            'results': data
+        })

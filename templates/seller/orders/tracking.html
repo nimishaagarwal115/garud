@@ -1,0 +1,178 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}ऑर्डर ट्रैकिंग{% endblock %}
+
+{% block css_files %}
+<link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/footer.css' %}">
+<style>
+/* Reset and normalize */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: #fff; font-family: Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+
+/* Tracking CSS */
+.tracking-container { min-height: calc(100vh - 80px); padding: 15px 15px 90px 15px; }
+
+.header-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+.back-btn { font-size: 20px; color: #333; text-decoration: none; }
+.header-row h1 { font-size: 20px; font-weight: 600; color: #333; margin: 0; }
+
+.order-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.order-meta-id { font-size: 15px; font-weight: 600; color: #333; }
+.order-meta-date { font-size: 14px; color: #888; }
+
+/* Timeline */
+.timeline-container { position: relative; margin-bottom: 40px; padding: 0 10px; }
+.timeline-track { 
+    position: absolute; top: 15px; left: 30px; right: 30px; height: 2px; 
+    background-color: #e0e0e0; z-index: 1; border: 1px dashed #e0e0e0;
+}
+.timeline-progress {
+    position: absolute; top: 15px; left: 30px; height: 2px; 
+    background-color: #b44a1d; z-index: 2; border: 1px dashed #b44a1d; transition: width 0.3s ease;
+}
+.timeline-steps { display: flex; justify-content: space-between; position: relative; z-index: 3; }
+.timeline-step { display: flex; flex-direction: column; align-items: center; width: 60px; }
+.step-time { font-size: 10px; color: #888; margin-bottom: 5px; height: 12px; }
+.step-dot { 
+    width: 12px; height: 12px; border-radius: 50%; background-color: #e0e0e0; margin-bottom: 8px;
+}
+.step-dot.active { background-color: #b44a1d; width: 16px; height: 16px; margin-top: -2px; margin-bottom: 6px; border: 2px solid #fff; box-shadow: 0 0 0 1px #b44a1d; }
+.step-dot.completed { background-color: #b44a1d; }
+.step-label { font-size: 11px; color: #888; text-align: center; }
+.step-label.active { color: #333; font-weight: 600; }
+
+.reviews-section { border-top: 1px solid #eee; padding-top: 20px; }
+.reviews-title { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 10px; }
+.stars-summary { display: flex; align-items: center; gap: 5px; margin-bottom: 20px; font-size: 14px; color: #666; }
+.stars-summary i { color: #ffc107; font-size: 16px; }
+
+.review-item { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+.review-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.reviewer-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.reviewer-info { display: flex; flex-direction: column; }
+.review-title { font-size: 14px; font-weight: 600; color: #333; }
+.reviewer-name { font-size: 12px; color: #888; }
+.review-rating { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #666; margin-bottom: 10px; }
+.review-rating i { color: #ffc107; font-size: 12px; }
+.review-text { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 15px; }
+
+.review-images { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+.review-images img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; }
+</style>
+{% endblock %}
+
+{% block All_Content %}
+{% include "components/header.html" %}
+
+<div class="tracking-container">
+    <div class="header-row">
+        <h1>ऑर्डर ट्रैकिंग</h1>
+    </div>
+    
+    <div class="order-meta-row">
+        <div class="order-meta-id">ऑर्डर आईडी: {{ order.order.pg_order_id }}</div>
+        <div class="order-meta-date">आज</div>
+    </div>
+
+    <!-- Timeline Logic -->
+    {% widthratio 0 1 1 as progress_width %}
+    {% if order.status == 'CONFIRMED' %}{% widthratio 0 1 1 as progress_width %}
+    {% elif order.status == 'PACKED' %}{% widthratio 33 1 1 as progress_width %}
+    {% elif order.status == 'SHIPPED' %}{% widthratio 66 1 1 as progress_width %}
+    {% elif order.status == 'DELIVERED' %}{% widthratio 100 1 1 as progress_width %}
+    {% endif %}
+
+    <div class="timeline-container">
+        <div class="timeline-track"></div>
+        <!-- Progress bar width depends on status -->
+        <div class="timeline-progress" style="width: {% if order.status == 'DELIVERED' %}100%{% elif order.status == 'SHIPPED' %}66%{% elif order.status == 'PACKED' %}33%{% else %}0%{% endif %};"></div>
+        
+        <div class="timeline-steps">
+            <!-- Confirmed Step -->
+            <div class="timeline-step">
+                <div class="step-time">{% if order.status != 'PENDING' %}{{ order.updated_at|date:"h:i a" }}{% endif %}</div>
+                <div class="step-dot {% if order.status != 'PENDING' %}completed{% endif %} {% if order.status == 'CONFIRMED' %}active{% endif %}"></div>
+                <div class="step-label {% if order.status == 'CONFIRMED' %}active{% endif %}">कन्फर्म</div>
+            </div>
+            
+            <!-- Packed Step -->
+            <div class="timeline-step">
+                <div class="step-time">{% if order.status in 'PACKED,SHIPPED,DELIVERED' %}{{ order.updated_at|date:"h:i a" }}{% endif %}</div>
+                <div class="step-dot {% if order.status in 'PACKED,SHIPPED,DELIVERED' %}completed{% endif %} {% if order.status == 'PACKED' %}active{% endif %}"></div>
+                <div class="step-label {% if order.status == 'PACKED' %}active{% endif %}">प्रक्रिया</div>
+            </div>
+            
+            <!-- Shipped Step -->
+            <div class="timeline-step">
+                <div class="step-time">{% if order.status in 'SHIPPED,DELIVERED' %}{{ order.updated_at|date:"h:i a" }}{% endif %}</div>
+                <div class="step-dot {% if order.status in 'SHIPPED,DELIVERED' %}completed{% endif %} {% if order.status == 'SHIPPED' %}active{% endif %}"></div>
+                <div class="step-label {% if order.status == 'SHIPPED' %}active{% endif %}">शिप्प्ड</div>
+            </div>
+            
+            <!-- Delivered Step -->
+            <div class="timeline-step">
+                <div class="step-time">{% if order.status == 'DELIVERED' %}{{ order.updated_at|date:"h:i a" }}{% endif %}</div>
+                <div class="step-dot {% if order.status == 'DELIVERED' %}completed active{% endif %}"></div>
+                <div class="step-label {% if order.status == 'DELIVERED' %}active{% endif %}">पहुंचाया</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section">
+        <div class="reviews-title">समीक्षा</div>
+        <div class="stars-summary">
+            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-star-half"></i>
+            <span>({{ reviews|length|default:"0" }})</span>
+        </div>
+        
+        {% for review in reviews %}
+        <div class="review-item">
+            <div class="review-header">
+                {% if review.user.photo %}
+                    <img src="{{ review.user.photo.url }}" class="reviewer-avatar" alt="Avatar">
+                {% else %}
+                    <img src="{% static 'images/account/profile.png' %}" class="reviewer-avatar" alt="Avatar">
+                {% endif %}
+                <div class="reviewer-info">
+                    <div class="review-title">यह अच्छा है</div> <!-- Usually review title if available, otherwise generic -->
+                    <div class="reviewer-name">{{ review.user.full_name|default:"Customer" }}</div>
+                </div>
+            </div>
+            <div class="review-rating">
+                {% for i in "12345"|make_list %}
+                    {% if forloop.counter <= review.rating %}
+                        <i class="bi bi-star-fill"></i>
+                    {% else %}
+                        <i class="bi bi-star"></i>
+                    {% endif %}
+                {% endfor %}
+                <span>({{ review.rating|floatformat:1 }})</span>
+            </div>
+            <div class="review-text">
+                {{ review.review_text }}
+            </div>
+            
+            <!-- Handle review images if supported. (Assuming a related name like review.images exists, otherwise this will just be empty) -->
+            {% if review.images.all %}
+            <div class="review-images">
+                {% for image in review.images.all %}
+                    <img src="{{ image.image.url }}" alt="Review Image">
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-muted" style="font-size:14px;">अभी तक कोई समीक्षा नहीं।</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% include "components/footer.html" %}
+{% endblock %}

@@ -1,0 +1,56 @@
+.custom-header {
+  background-color: #c0392b;
+  padding: 10px 0;
+}
+
+.search-bar-wrapper {
+  flex-wrap: nowrap;
+}
+
+.search-box {
+  background-color: #fff8f0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  flex-wrap: nowrap;
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  flex-grow: 1;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.notification-btn {
+  background: none;
+  border: none;
+  color: #fff8f0;
+  font-size: 20px;
+}
+
+.notification-btn i {
+  vertical-align: middle;
+}
+
+/* Mobile tweaks */
+@media (max-width: 576px) {
+  .search-input {
+    font-size: 13px;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .notification-btn {
+    font-size: 18px;
+  }
+}

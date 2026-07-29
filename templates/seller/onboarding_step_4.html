@@ -1,0 +1,125 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block title %}Garud | Aadhaar Mobile{% endblock %}
+
+{% block All_Content %}
+<!-- Include Stepper -->
+{% include "seller/includes/onboarding_stepper.html" %}
+
+<div class="d-flex flex-column align-items-center justify-content-center px-4" style="min-height: 80vh; background-color: #f8f9fa;">
+    
+    <!-- ==================== SCREEN A: VOICE CAPTURE ==================== -->
+    {% if messages %}
+        <div class="w-100 px-4 mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div id="voice-screen" class="w-100 d-flex flex-column align-items-center justify-content-center" style="max-width: 400px;">
+        <div class="mb-5 text-center" style="margin-top: 40px;">
+            <button type="button" id="voice-btn" class="btn rounded-circle garud-mic-static-radar" style="width: 100px; height: 100px;">
+                <i class="bi bi-mic text-white" style="font-size: 2.5rem;"></i>
+            </button>
+        </div>
+        <p id="voice-status" class="text-center text-muted mb-4" style="font-size: 14px; min-height: 20px;"></p>
+        <h2 class="text-center" style="font-weight: 700; color: #333;" data-translate="tell_us_mobile">अपना आधार कार्ड से रजिस्टर्ड मोबाइल नंबर बतायें</h2>
+    </div>
+
+    <!-- ==================== SCREEN B: CONFIRMATION ==================== -->
+    <div id="confirmation-screen" class="w-100" style="max-width: 400px; display: none;">
+        <h3 class="text-center mb-4" style="font-weight: 700; color: #333;" data-translate="personal_information">व्यक्तिगत सूचना</h3>
+        
+        <div class="text-center mb-4">
+            <p class="text-muted mb-1" style="font-size: 12px;" data-translate="photo_label">फोटो</p>
+            {% if photo_url %}
+                <img src="{{ photo_url }}" alt="Profile Photo" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;">
+            {% else %}
+                <div class="rounded-circle border d-inline-flex align-items-center justify-content-center bg-light" style="width: 100px; height: 100px;">
+                    <i class="bi bi-person text-secondary" style="font-size: 3rem;"></i>
+                </div>
+            {% endif %}
+        </div>
+
+        <form method="post" id="confirmation-form">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="your_name">अपना नाम</label>
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-lg bg-light" value="{{ user_name }}" readonly>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="aadhaar_number">आधार कार्ड नंबर</label>
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-lg bg-light" value="{{ aadhaar_number }}" readonly>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="mobile_number">मोबाइल नंबर</label>
+                <div class="input-group">
+                    <input type="text" id="aadhaar_mobile" name="aadhaar_mobile" class="form-control form-control-lg" maxlength="10" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.getElementById('aadhaar_mobile').value=''; document.getElementById('aadhaar_mobile').focus();">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <p class="text-center text-muted mb-4" style="font-size: 13px; line-height: 1.5;" data-translate="mobile_confirmation_instruction">
+                आपका मोबाइल नंबर सही है तो आगे बटन दबायें, अन्यथा वापस अपना मोबाइल नंबर बोले
+            </p>
+
+            <div class="d-flex justify-content-between gap-3">
+                <button type="button" id="speak-again-btn" class="btn btn-warning w-50 py-3" style="font-size: 1rem; border-radius: 8px;" data-translate="speak_again">वापस बोले</button>
+                <button type="submit" class="btn btn-danger w-50 py-3" style="font-size: 1rem; border-radius: 8px;" data-translate="continue_forward">आगे बढे</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block AllScript %}
+<script src="{% static 'js/voice/GarudNumberParser.js' %}?v=4.0"></script>
+<script src="{% static 'js/voice/GarudVoice.js' %}?v=4.0"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const voiceScreen = document.getElementById("voice-screen");
+        const confirmationScreen = document.getElementById("confirmation-screen");
+        const speakAgainBtn = document.getElementById("speak-again-btn");
+        const voiceBtn = document.getElementById("voice-btn");
+        const mobileInput = document.getElementById("aadhaar_mobile");
+
+        // Hook up the new callback flow
+        voiceBtn.addEventListener("click", () => {
+            window.GarudVoice.start("aadhaar_mobile", "voice-btn", "voice-status", "mobile", function(transcript) {
+                // On Success: switch screens
+                voiceScreen.classList.remove("d-flex");
+                voiceScreen.classList.add("d-none");
+                confirmationScreen.style.display = "block";
+            });
+        });
+
+        // Speak again logic
+        speakAgainBtn.addEventListener("click", () => {
+            confirmationScreen.style.display = "none";
+            voiceScreen.classList.remove("d-none");
+            voiceScreen.classList.add("d-flex");
+            document.getElementById("voice-status").textContent = ""; // clear status
+            // Auto trigger listening again
+            voiceBtn.click();
+        });
+        
+        // Strip non-digits when Voice populates it or user types
+        mobileInput.addEventListener("input", () => {
+            mobileInput.value = mobileInput.value.replace(/\D/g, "").substring(0, 10);
+        });
+    });
+</script>
+{% endblock %}

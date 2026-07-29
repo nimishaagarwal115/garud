@@ -1,0 +1,133 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+
+{% block title %}Enter Verification Code{% endblock %}
+
+{% block styles %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+    }
+    .auth-container {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 40px 24px;
+        text-align: left;
+        background-color: #ffffff;
+        min-height: calc(100vh - 60px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    .auth-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: #1a1a1a; 
+        margin-top: 20px;
+        margin-bottom: 16px;
+        line-height: 1.2;
+    }
+    .auth-desc {
+        font-size: 14px;
+        color: #666666; 
+        line-height: 1.5;
+        margin-bottom: 32px;
+    }
+    .otp-single-input {
+        width: 100%;
+        height: 56px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background-color: #ffffff;
+        font-size: 16px;
+        padding: 0 16px;
+        color: #1a1a1a;
+        margin-bottom: 12px;
+        box-sizing: border-box;
+    }
+    .otp-single-input:focus {
+        outline: none;
+        border-color: #d94b2b;
+    }
+    .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 16px;
+        background-color: #d94b2b; 
+        color: #ffffff; 
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 24px;
+        transition: background-color 0.2s;
+    }
+    .btn-primary:hover {
+        background-color: #c24127;
+    }
+    .resend-container {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+    .resend-text {
+        color: #666666; 
+    }
+    .resend-btn {
+        background: none;
+        border: none;
+        color: #d94b2b; 
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+    }
+    .error-msg {
+        color: #d94b2b;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+    .success-msg {
+        color: #28a745;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1 class="auth-title">Enter Verification Code</h1>
+    <p class="auth-desc">For your security, we have sent the code to your registered phone {{ masked_mobile }}.</p>
+    
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+    {% if message %}
+    <div class="success-msg">{{ message }}</div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'customer_otp' %}" id="otp-form">
+        {% csrf_token %}
+        <input type="text" name="otp" class="otp-single-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="149472" required autofocus oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        
+        <button type="submit" class="btn-primary" style="display: none;" id="hidden-submit"></button>
+    </form>
+
+    <form method="POST" action="{% url 'customer_otp' %}">
+        {% csrf_token %}
+        <input type="hidden" name="resend" value="1">
+        <div class="resend-container">
+            <span class="resend-text">Don't receive the Code?</span>
+            <button type="submit" class="resend-btn">RESEND Code</button>
+        </div>
+    </form>
+    
+    <!-- Submit button for the OTP form -->
+    <button type="button" class="btn-primary" onclick="document.getElementById('hidden-submit').click();">Submit Code</button>
+</div>
+{% endblock %}

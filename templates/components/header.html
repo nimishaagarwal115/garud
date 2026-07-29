@@ -1,0 +1,38 @@
+{% load static %}
+<header class="custom-header">
+  <div class="container search-bar-wrapper d-flex align-items-center">
+    <!-- Back Arrow Button -->
+    <button class="back-arrow-btn me-3" onclick="window.history.back();" style="background: none; border: none;">
+      <img src="{% static 'images/components/header_icons/back.svg' %}" alt="Back" class="icon">
+    </button>
+
+    <form action="{% url 'customer_search' %}" method="get" class="search-box d-flex align-items-center flex-grow-1" autocomplete="off">
+
+      <button type="submit" style="background: none; border: none; padding: 0;">
+        <img src="{% static 'images/components/header_icons/search_red.svg' %}" alt="Search" class="icon me-2">
+      </button>
+
+      <input type="text" name="q" class="search-input" placeholder="Search" id="search-bar" value="{{ request.GET.q }}" 
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" 
+             onfocus="handleSearchFocus(this)">
+
+      <a href="{% url 'camera_search' %}" style="display:flex; align-items:center;">
+        <img src="{% static 'images/components/header_icons/camera_red.svg' %}" alt="Camera" class="icon ms-2">
+      </a>
+      <img src="{% static 'images/components/header_icons/mic_red.svg' %}" alt="Mic" class="icon ms-2">
+
+    </form>
+
+    <button class="notification-btn ms-3" onclick="window.location.href='{% if request.path|slice:":9" == "/customer" or request.path|slice:":5" == "/cart" or request.path|slice:":9" == "/checkout" %}{% url "customer_notifications" %}{% elif request.user.is_seller %}{% url "seller_notifications" %}{% else %}{% url "customer_notifications" %}{% endif %}'">
+      <i class="bi bi-bell"></i>
+    </button>
+  </div>
+</header>
+<link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+<script>
+  function handleSearchFocus(input) {
+      if (window.location.pathname !== "{% url 'customer_search' %}") {
+          window.location.href = "{% url 'customer_search' %}";
+      }
+  }
+</script>

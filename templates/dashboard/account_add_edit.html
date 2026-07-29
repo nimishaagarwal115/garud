@@ -1,0 +1,117 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}Mobile Number Verification{% endblock all_title %}
+
+{% block content %}
+<!-- Top Section with Back + Step Info -->
+<div class="top-bar">
+    <a href="#" class="back-btn">←</a>
+    <div class="step-info-text">
+        <div class="step-line">Step 1</div>
+        <div class="step-line sub">Mobile Number</div>
+    </div>
+</div>
+
+<div class="aadhaar-verification-outer">
+
+    <!-- Mic Icon with Image -->
+    <div class="aadhaar-mic-section">
+        <div class="mic-circle">
+            <span class="mic-icon">
+                <img src="{% static 'images/extras/voice recognition.svg' %}" alt="Voice Recognition" width="120" height="120">
+            </span>
+        </div>
+    </div>
+
+    <h5 class="aadhaar-select-title">Select one of the options below</h5>
+    <form method="post" class="aadhaar-form" id="aadhaar-form">
+        {% csrf_token %}
+        <div id="step1-options">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="aadhaar_option" id="scan_aadhaar">
+                <label class="form-check-label" for="scan_aadhaar">Scan Aadhaar Card</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="aadhaar_option" id="enter_aadhaar">
+                <label class="form-check-label" for="enter_aadhaar">Enter Aadhaar Card Number</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="aadhaar_option" id="enter_mobile" checked>
+                <label class="form-check-label" for="enter_mobile">Enter Mobile Number Registered with Aadhaar</label>
+            </div>
+        </div>
+
+        <!-- Camera section shown when Scan Aadhaar is selected -->
+        <div id="step2-scan" style="display:none; text-align:center;">
+            <video id="webcam" autoplay playsinline width="320" height="240" style="border:1px solid #ccc;"></video>
+            <br/>
+            <button type="button" onclick="captureImage()">Capture Aadhaar</button>
+            <div id="loader" style="display:none; margin:10px 0;">Processing...</div>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <p id="ocr-result" style="margin-top: 10px; color: green;"></p>
+        </div>
+
+        <input type="hidden" name="aadhaar_data" id="aadhaar_data">
+
+        <button type="submit" class="btn btn-danger mt-4">Continue</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById('aadhaar-form');
+    const step1 = document.getElementById('step1-options');
+    const step2 = document.getElementById('step2-scan');
+    const webcam = document.getElementById("webcam");
+    let stream;
+
+    form.addEventListener("submit", async function (e) {
+        const selected = document.querySelector('input[name="aadhaar_option"]:checked');
+        if (selected && selected.id === "scan_aadhaar") {
+            e.preventDefault();
+            step1.style.display = "none";
+            step2.style.display = "block";
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                webcam.srcObject = stream;
+            } catch (err) {
+                alert("Camera access denied or not supported.");
+            }
+        }
+    });
+});
+
+function captureImage() {
+    const video = document.getElementById("webcam");
+    const canvas = document.getElementById("canvas");
+    const loader = document.getElementById("loader");
+    const context = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+
+    loader.style.display = "block";
+
+    const imageData = canvas.toDataURL("image/png");
+
+    Tesseract.recognize(
+        imageData,
+        'eng',
+        {
+            logger: m => console.log(m)
+        }
+    ).then(({ data: { text } }) => {
+        loader.style.display = "none";
+        document.getElementById("ocr-result").innerText = text;
+        document.getElementById("aadhaar_data").value = text;
+    });
+}
+</script>
+
+<style>
+/* Your existing CSS untouched */
+</style>
+{% endblock content %}

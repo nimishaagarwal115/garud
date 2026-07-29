@@ -1,0 +1,372 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}Seller Orders{% endblock %}
+
+{% block css_files %}
+<link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/footer.css' %}">
+<style>
+/* Reset and normalize */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: #f8f9fa; font-family: Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+
+/* Orders List CSS */
+.orders-container { min-height: calc(100vh - 80px); padding: 15px 15px 90px 15px; }
+
+.header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.header-row h1 { font-size: 22px; font-weight: 600; color: #333; margin: 0; }
+.filter-icon { color: #666; font-size: 24px; cursor: pointer; }
+
+.order-card { 
+    background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; 
+    margin-bottom: 15px; padding: 12px; display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.order-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.order-id-date { display: flex; flex-direction: column; }
+.order-id { font-size: 14px; font-weight: 600; color: #333; }
+.order-date { font-size: 12px; color: #888; margin-top: 2px; }
+
+.order-actions { color: #888; font-size: 18px; cursor: pointer; border: none; background: transparent; }
+
+.order-items { border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 0; display: flex; gap: 12px; align-items: center; }
+.product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; background-color: #f4f4f4; border: 1px solid #eaeaea; }
+.product-details { flex: 1; }
+.product-name { font-size: 14px; color: #333; font-weight: 500; }
+.product-qty { font-size: 14px; color: #333; text-align: right; }
+
+.order-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 5px; }
+.order-total { font-size: 16px; font-weight: 700; color: #333; }
+.status-badge { 
+    font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 4px; border: 1px solid transparent;
+}
+.status-PENDING { color: #b46b1d; border-color: #e5c386; background-color: #fffaf0; }
+.status-CONFIRMED { color: #1d7bb4; border-color: #86c3e5; background-color: #f0f8ff; }
+.status-PACKED { color: #8b1db4; border-color: #c986e5; background-color: #fcf0ff; }
+.status-SHIPPED { color: #d9752b; border-color: #eeb185; background-color: #fff6f0; }
+.status-DELIVERED { color: #28a745; border-color: #86e59e; background-color: #f0fff4; }
+.status-CANCELLED { color: #dc3545; border-color: #e5868e; background-color: #fff0f1; }
+
+.search-bar { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid #ddd; margin-bottom: 15px; font-size: 14px; outline: none; }
+
+/* Custom Mobile Bottom Sheet CSS */
+.custom-bottom-sheet-backdrop { position: fixed; top: 0; bottom: 0; width: 100%; max-width: 425px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+.custom-bottom-sheet-backdrop.show { opacity: 1; pointer-events: auto; }
+.custom-bottom-sheet { position: fixed; bottom: 0; width: 100%; max-width: 425px; left: 50%; transform: translateX(-50%) translateY(100%); height: 70vh; background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 10001; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; flex-direction: column; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); overflow: hidden; }
+.custom-bottom-sheet.show { transform: translateX(-50%) translateY(0); }
+
+.filter-header { padding: 20px 20px 0 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0; }
+.filter-title { font-size: 20px; font-weight: 600; color: #333; margin: 0; }
+.btn-close-custom { background: none; border: none; color: #d94b2b; font-size: 16px; font-weight: 500; cursor: pointer; padding: 0; }
+.filter-body { padding: 0 20px 20px 20px; overflow-y: auto; flex: 1; min-height: 0; }
+.filter-section-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 12px; margin-top: 10px; }
+.date-row { display: flex; gap: 15px; margin-bottom: 20px; }
+.date-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.date-group label { font-size: 13px; color: #666; }
+.filter-input { width: 100%; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; color: #333; outline: none; background: #fff; }
+.filter-input.full-width { margin-bottom: 20px; }
+.status-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.status-pill { position: relative; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid #e0e0e0; background: #fff; user-select: none; }
+.status-pill input[type="radio"] { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+.status-pending { color: #b46b1d; border-color: #b46b1d; }
+.status-pending.selected { background-color: #fffaf0; border-width: 2px; }
+.status-confirmed { color: #1d7bb4; border-color: #1d7bb4; }
+.status-confirmed.selected { background-color: #f0f8ff; border-width: 2px; }
+.status-packed { color: #8b1db4; border-color: #8b1db4; }
+.status-packed.selected { background-color: #fcf0ff; border-width: 2px; }
+.status-shipped { color: #d9752b; border-color: #d9752b; }
+.status-shipped.selected { background-color: #fff6f0; border-width: 2px; }
+.status-delivered { color: #28a745; border-color: #28a745; }
+.status-delivered.selected { background-color: #f0fff4; border-width: 2px; }
+.status-cancelled { color: #dc3545; border-color: #dc3545; }
+.status-cancelled.selected { background-color: #fff0f1; border-width: 2px; }
+.filter-footer { padding: 15px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 15px; flex-shrink: 0; }
+.btn-filter-reset { flex: 1; padding: 12px; background-color: #fff; color: #333; font-size: 15px; font-weight: 600; border: 1px solid #ccc; border-radius: 8px; cursor: pointer; text-align: center; }
+.btn-filter-apply { flex: 1; padding: 12px; background-color: #b44a1d; color: #fff; font-size: 15px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; text-align: center; }
+
+</style>
+{% endblock %}
+
+{% block All_Content %}
+{% include "components/header.html" %}
+
+<div class="orders-container">
+    <div class="header-row">
+        <h1>ऑर्डर</h1>
+        <i class="bi bi-funnel filter-icon" onclick="openCustomFilter()"></i>
+    </div>
+    
+    <!-- Using the global search bar instead of this form -->
+    {% if request.GET.status %}
+    <input type="hidden" id="status-filter" value="{{ request.GET.status }}">
+    {% endif %}
+
+    {% for order in orders %}
+    <div class="order-card" onclick="location.href='{% url 'seller_order_detail' order.id %}'" style="cursor: pointer;">
+        <div class="order-header">
+            <div class="order-id-date">
+                <span class="order-id">ऑर्डर आईडी: {{ order.order.pg_order_id }}</span>
+                <span class="order-date">{{ order.created_at|date:"d M, Y" }}</span>
+            </div>
+            <!-- Prevent click from bubbling up to the card -->
+            <button class="order-actions" onclick="event.stopPropagation(); $('#actionModal{{ order.id }}').modal('show');">
+                <i class="bi bi-three-dots-vertical"></i>
+            </button>
+        </div>
+        
+        <!-- Currently showing just the first item for preview like the mock -->
+        {% with order.items.first as first_item %}
+        {% if first_item %}
+        <div class="order-items">
+            {% if first_item.product.primary_image %}
+                <img src="{{ first_item.product.primary_image.image.url }}" class="product-img" alt="{{ first_item.product.name }}">
+            {% else %}
+                <img src="{% static 'images/placeholder-image.png' %}" class="product-img" alt="Placeholder">
+            {% endif %}
+            <div class="product-details">
+                <div class="product-name">{{ first_item.product.name }}</div>
+            </div>
+            <div class="product-qty">
+                {{ first_item.quantity }}
+            </div>
+        </div>
+        
+        <div class="order-footer">
+            <div class="order-total">₹ {{ first_item.price|floatformat:0 }}</div>
+            {% if order.status == 'PENDING' %}
+                <span class="status-badge status-PENDING">पेंडिंग</span>
+            {% elif order.status == 'CONFIRMED' %}
+                <span class="status-badge status-CONFIRMED">कन्फर्म</span>
+            {% elif order.status == 'PACKED' %}
+                <span class="status-badge status-PACKED">प्रक्रिया</span>
+            {% elif order.status == 'SHIPPED' %}
+                <span class="status-badge status-SHIPPED">शिप्प्ड</span>
+            {% elif order.status == 'DELIVERED' %}
+                <span class="status-badge status-DELIVERED">पहुंचाया</span>
+            {% elif order.status == 'CANCELLED' %}
+                <span class="status-badge status-CANCELLED">रद्द</span>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+    
+    <!-- Action Modal -->
+    <div class="modal fade" id="actionModal{{ order.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ऑर्डर कार्रवाई (ID: {{ order.order.pg_order_id }})</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body d-flex flex-column gap-2">
+                    {% if order.status == 'PENDING' %}
+                        <button class="btn btn-success" onclick="updateOrderStatus({{ order.id }}, 'CONFIRMED')">Accept Order</button>
+                        <button class="btn btn-danger" onclick="updateOrderStatus({{ order.id }}, 'CANCELLED')">Reject Order</button>
+                    {% elif order.status == 'CONFIRMED' %}
+                        <button class="btn btn-primary" onclick="updateOrderStatus({{ order.id }}, 'PACKED')">Mark as Packed</button>
+                    {% elif order.status == 'PACKED' %}
+                        <button class="btn btn-warning" onclick="updateOrderStatus({{ order.id }}, 'SHIPPED')">Mark as Shipped</button>
+                    {% elif order.status == 'SHIPPED' %}
+                        <button class="btn btn-success" onclick="updateOrderStatus({{ order.id }}, 'DELIVERED')">Mark as Delivered</button>
+                    {% endif %}
+                    <a href="{% url 'seller_order_detail' order.id %}" class="btn btn-outline-secondary">View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center mt-5">
+        <p class="text-muted">कोई ऑर्डर नहीं मिला।</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Custom Filter Bottom Sheet -->
+<div class="custom-bottom-sheet-backdrop" id="customFilterBackdrop" onclick="closeCustomFilter()"></div>
+<div class="custom-bottom-sheet" id="customFilterSheet">
+    <div class="filter-header" id="filterSheetHandle">
+        <h5 class="filter-title">फ़िल्टर</h5>
+        <button type="button" class="btn-close-custom" onclick="closeCustomFilter()">बंद</button>
+    </div>
+    <div class="filter-body" id="filterSheetBody">
+        <form id="detailed-filter-form" method="get" action="">
+            {% if request.GET.search %}
+            <input type="hidden" name="search" value="{{ request.GET.search }}">
+            {% endif %}
+            
+            <div class="filter-section-title">तारीख</div>
+            <div class="date-row">
+                <div class="date-group">
+                    <label>दिनांक से</label>
+                    <input type="date" name="date_from" value="{{ request.GET.date_from }}" class="filter-input">
+                </div>
+                <div class="date-group">
+                    <label>दिनांक को</label>
+                    <input type="date" name="date_to" value="{{ request.GET.date_to }}" class="filter-input">
+                </div>
+            </div>
+
+            <div class="filter-section-title">ऑर्डर आई डी</div>
+            <input type="text" name="order_id" value="{{ request.GET.order_id }}" class="filter-input full-width" placeholder="3210df4565952">
+
+            <div class="filter-section-title">ऑर्डर स्थिति</div>
+            <div class="status-grid">
+                <label class="status-pill status-pending {% if request.GET.status == 'PENDING' %}selected{% endif %}">
+                    <input type="radio" name="status" value="PENDING" {% if request.GET.status == 'PENDING' %}checked{% endif %}>
+                    पेंडिंग
+                </label>
+                <label class="status-pill status-confirmed {% if request.GET.status == 'CONFIRMED' %}selected{% endif %}">
+                    <input type="radio" name="status" value="CONFIRMED" {% if request.GET.status == 'CONFIRMED' %}checked{% endif %}>
+                    कन्फर्म
+                </label>
+                <label class="status-pill status-packed {% if request.GET.status == 'PACKED' %}selected{% endif %}">
+                    <input type="radio" name="status" value="PACKED" {% if request.GET.status == 'PACKED' %}checked{% endif %}>
+                    प्रक्रिया
+                </label>
+                <label class="status-pill status-shipped {% if request.GET.status == 'SHIPPED' %}selected{% endif %}">
+                    <input type="radio" name="status" value="SHIPPED" {% if request.GET.status == 'SHIPPED' %}checked{% endif %}>
+                    शिप्प्ड
+                </label>
+                <label class="status-pill status-delivered {% if request.GET.status == 'DELIVERED' %}selected{% endif %}">
+                    <input type="radio" name="status" value="DELIVERED" {% if request.GET.status == 'DELIVERED' %}checked{% endif %}>
+                    पहुँचाया
+                </label>
+                <label class="status-pill status-cancelled {% if request.GET.status == 'CANCELLED' %}selected{% endif %}">
+                    <input type="radio" name="status" value="CANCELLED" {% if request.GET.status == 'CANCELLED' %}checked{% endif %}>
+                    रद्द
+                </label>
+            </div>
+        </form>
+    </div>
+    <div class="filter-footer">
+        <button type="button" class="btn-filter-reset" onclick="window.location.href='{% url 'seller_orders_list' %}'">रीसेट</button>
+        <button type="submit" form="detailed-filter-form" class="btn-filter-apply">फ़िल्टर करें</button>
+    </div>
+</div>
+
+{% include "components/footer.html" %}
+
+<script>
+// Bottom Sheet Logic
+function openCustomFilter() {
+    document.getElementById('customFilterBackdrop').classList.add('show');
+    document.getElementById('customFilterSheet').classList.add('show');
+}
+function closeCustomFilter() {
+    document.getElementById('customFilterBackdrop').classList.remove('show');
+    document.getElementById('customFilterSheet').classList.remove('show');
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Swipe down to dismiss logic
+    const sheet = document.getElementById('customFilterSheet');
+    let startY = 0;
+    let currentY = 0;
+    
+    // Only detect swipe on the header or body but allow scrolling in body
+    const handle = document.getElementById('filterSheetHandle');
+    
+    sheet.addEventListener('touchstart', (e) => {
+        // Prevent interfering if we are scrolling the internal list, check if at top
+        const body = document.getElementById('filterSheetBody');
+        if (body.scrollTop <= 0) {
+            startY = e.touches[0].clientY;
+        } else {
+            startY = 0; // disable swipe dismiss if scrolled down
+        }
+    }, {passive: true});
+
+    sheet.addEventListener('touchmove', (e) => {
+        if (!startY) return;
+        currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+        if (diff > 0) {
+            sheet.style.transform = `translateX(-50%) translateY(${diff}px)`;
+            sheet.style.transition = 'none';
+        }
+    }, {passive: true});
+
+    sheet.addEventListener('touchend', (e) => {
+        if (!startY) return;
+        sheet.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
+        const diff = currentY - startY;
+        if (diff > 100) {
+            closeCustomFilter();
+        } else {
+            sheet.style.transform = 'translateX(-50%) translateY(0)';
+        }
+        startY = 0;
+    });
+
+    const searchBar = document.getElementById('search-bar');
+    if(searchBar) {
+        // Pre-fill if there's a search term in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.has('search')) {
+            searchBar.value = urlParams.get('search');
+        }
+        
+        searchBar.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                let url = new URL(window.location.href);
+                url.searchParams.set('search', searchBar.value);
+                window.location.href = url.toString();
+            }
+        });
+    }
+
+    // Handle pill selections
+    const pills = document.querySelectorAll('.status-pill input[type="radio"]');
+    pills.forEach(pill => {
+        pill.addEventListener('change', function() {
+            document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('selected'));
+            if (this.checked) {
+                this.parentElement.classList.add('selected');
+            }
+        });
+    });
+});
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function updateOrderStatus(orderId, status) {
+    const url = `/seller-orders/${orderId}/update-status/`;
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            location.reload();
+        } else {
+            alert('Error updating status: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred.');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+
+{% block title %}Sign In{% endblock title %}
+
+{% block content %}
+<div class="d-flex flex-column justify-content-between" style="height: 100vh; background-color: #fff; padding: 20px;">
+    
+    <!-- Top section empty for spacing -->
+    <div></div>
+
+    <!-- Center Section: Voice Mic -->
+    <div class="text-center d-flex flex-column align-items-center justify-content-center" style="flex-grow: 1;">
+        
+        <!-- Voice Animation Container -->
+        <div id="voice-animation-container" style="position: relative; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <div class="pulse-ring" style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background-color: rgba(217, 75, 43, 0.1); animation: pulse 2s infinite;"></div>
+            <div class="pulse-ring" style="position: absolute; width: 75%; height: 75%; border-radius: 50%; background-color: rgba(217, 75, 43, 0.2); animation: pulse 2s infinite 0.5s;"></div>
+            
+            <button id="voice-login-btn" class="btn" style="position: relative; width: 60px; height: 60px; border-radius: 50%; background-color: #d94b2b; color: white; border: none; display: flex; align-items: center; justify-content: center; z-index: 2;">
+                <i class="bi bi-mic-fill" style="font-size: 28px;"></i>
+            </button>
+        </div>
+
+        <h2 style="color: #333; font-weight: 600; font-size: 24px;">Account</h2>
+        <p id="voice-status" class="text-muted mt-2" style="font-size: 14px; min-height: 20px;">Tap microphone to speak your mobile number</p>
+
+        <!-- Hidden Form -->
+        <form method="post" action="?role={{ role }}" id="login-form" class="w-100 mt-4" style="max-width: 300px; display: none;">
+            {% csrf_token %}
+            <div class="mb-3">
+                <input type="text" class="form-control text-center" id="mobile" name="mobile" required placeholder="Enter 10-digit mobile number" style="font-size: 18px; letter-spacing: 2px; border-radius: 8px;">
+            </div>
+            {% if message %}<div class="alert alert-danger p-2" style="font-size: 14px;">{{ message }}</div>{% endif %}
+            <button type="submit" id="submit-login-btn" class="btn w-100" style="background-color: #d94b2b; color: white; border-radius: 8px; font-weight: 500; padding: 12px;">Login</button>
+        </form>
+
+    </div>
+
+    <!-- Bottom Section: Actions -->
+    <div class="w-100 mb-3" style="max-width: 400px; margin: 0 auto;">
+        
+        <button type="button" onclick="document.getElementById('login-form').style.display='block'; document.getElementById('mobile').focus();" class="btn w-100 mb-3" style="background-color: #f3a34a; color: white; border-radius: 8px; font-weight: 500; padding: 14px 0; font-size: 16px;">
+            Login
+        </button>
+        
+        {% if role == 'Seller' %}
+        <a href="{% url 'seller_onboarding_step' 1 %}" class="btn w-100 mb-3" style="background-color: #d94b2b; color: white; border-radius: 8px; font-weight: 500; padding: 14px 0; font-size: 16px; text-decoration: none;">
+            Create New Account
+        </a>
+        {% else %}
+        <a href="{% url 'register' %}?role={{ role }}" class="btn w-100 mb-3" style="background-color: #d94b2b; color: white; border-radius: 8px; font-weight: 500; padding: 14px 0; font-size: 16px; text-decoration: none;">
+            Create New Account
+        </a>
+        {% endif %}
+
+        <div class="text-center">
+            <!-- Simulated Forgot Password - the existing auth flow handles forgot via OTP if mobile exists -->
+            <button type="button" onclick="document.getElementById('login-form').style.display='block'; document.getElementById('mobile').focus();" class="btn btn-link text-muted" style="text-decoration: none; font-size: 14px;">
+                Forgot Password?
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(1.2); opacity: 0; }
+}
+</style>
+{% endblock content %}
+
+{% block script %}
+<script src="{% static 'js/voice/GarudNumberParser.js' %}"></script>
+<script src="{% static 'js/voice/GarudVoice.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const mobileInput = document.getElementById("mobile");
+    const voiceBtn = document.getElementById("voice-login-btn");
+    const loginForm = document.getElementById("login-form");
+
+    voiceBtn.addEventListener("click", function () {
+        // Show form if hidden
+        if (loginForm.style.display === 'none' || loginForm.style.display === '') {
+            loginForm.style.display = 'block';
+        }
+        
+        // Start new voice module
+        window.GarudVoice.start("mobile", "voice-login-btn", "voice-status", "mobile");
+    });
+    
+    // Strip non-digits on manual input
+    mobileInput.addEventListener("input", () => {
+        mobileInput.value = mobileInput.value.replace(/\D/g, "").substring(0, 10);
+    });
+});
+</script>
+{% endblock script %}

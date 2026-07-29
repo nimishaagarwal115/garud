@@ -1,0 +1,220 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}View Order Details{% endblock %}
+
+{% block allStyles %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+    }
+    
+    .checkout-wrapper {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        max-width: 425px;
+        margin: 0 auto;
+        position: relative;
+        padding-bottom: 80px;
+        border-left: 1px solid #dee2e6;
+        border-right: 1px solid #dee2e6;
+    }
+    
+    .info-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .detail-label {
+        color: #666;
+    }
+
+    .detail-value {
+        color: #333;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .action-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0 0 0;
+        color: #333;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    
+    .action-link i {
+        color: #999;
+    }
+
+    .divider {
+        height: 1px;
+        background-color: #f5f5f5;
+        margin: 16px 0;
+    }
+
+    /* Hide notification bell from standard header for this page */
+    .custom-header .notification-btn {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block All_Content %}
+<div class="checkout-wrapper d-flex flex-column">
+    {% include "components/header.html" %}
+
+    <h4 class="fw-bold px-3 pt-4 mb-0" style="font-size: 18px; color: #333;">View Order Details</h4>
+    
+    <!-- Order Summary Top Card -->
+    <div class="info-card mt-3">
+        <div class="detail-row">
+            <span class="detail-label">Order Date:</span>
+            <span class="detail-value fw-bold">{{ order.created_at|date:"d-M-Y" }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Order #:</span>
+            <span class="detail-value">{{ order.pg_order_id }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Order Total:</span>
+            <span class="detail-value">Rs. {{ total|floatformat:2 }} ({{ order_items|length }} Item{% if order_items|length > 1 %}s{% endif %})</span>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <a href="{% url 'customer_download_invoice' order_item.id %}" class="action-link" style="padding-top: 0;">
+            <span>Download Invoice</span>
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+
+    <!-- Product Card(s) -->
+    <div class="info-card">
+        <h5 class="fw-bold mb-3" style="font-size: 15px; color: #333;">{{ seller_order.status|title }}</h5>
+        
+        {% for item in order_items %}
+        <div class="d-flex {% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+            <div style="width: 72px; height: 72px; border-radius: 8px; overflow: hidden; flex-shrink: 0; margin-right: 16px; background-color: #f5f5f5;">
+                {% if item.product.media.first %}
+                <img src="{{ item.product.media.first.image.url }}" alt="{{ item.product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                <img src="{% static 'images/extras/default_product.png' %}" alt="Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+                {% endif %}
+            </div>
+            <div class="flex-grow-1" style="min-width: 0;">
+                <h6 class="mb-1 text-dark" style="font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">
+                    {{ item.product.name }}
+                </h6>
+                
+                <div class="d-flex align-items-center mb-1">
+                    <span class="fw-bold me-2" style="font-size: 14px; color: #333;">₹{{ item.price|floatformat:0 }}</span>
+                    {% if item.product.price and item.product.price > item.price %}
+                        <span class="text-decoration-line-through me-2" style="font-size: 12px; color: #999;">₹{{ item.product.price|floatformat:0 }}</span>
+                        <span style="font-size: 10px; background-color: #b94a2c; color: white; padding: 2px 4px; border-radius: 4px;">-{{ item.discount_percentage }}%</span>
+                    {% endif %}
+                </div>
+                
+                <div style="font-size: 13px; color: #666;" class="mb-1">
+                    Qty: <span class="fw-bold text-dark">{{ item.quantity }}</span>
+                </div>
+                
+                <div style="font-size: 13px; color: #666;">
+                    Sold By: <span class="text-dark">{{ item.product.user.first_name|default:item.product.user.mobile }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Payment/Address Information -->
+    <h4 class="fw-bold px-3 mt-4 mb-2" style="font-size: 18px; color: #333;">Payment/Address Information</h4>
+    <div class="info-card mt-2">
+        <h5 class="fw-bold mb-2" style="font-size: 15px; color: #333;">Payment Method</h5>
+        <div style="font-size: 14px; color: #666;">
+            {% if order.transaction and order.transaction.payment_status %}
+                Online Payment
+            {% else %}
+                Cash on Delivery
+            {% endif %}
+        </div>
+        
+        <div class="divider"></div>
+        
+        <h5 class="fw-bold mb-2" style="font-size: 15px; color: #333;">Billing Address</h5>
+        <div style="font-size: 14px; color: #666; line-height: 1.6;">
+            <div class="text-dark mb-1">
+                {% if request.user.profile.full_name %}{{ request.user.profile.full_name }}{% elif request.user.full_name %}{{ request.user.full_name }}{% else %}{{ request.user.mobile }}{% endif %}
+            </div>
+            {% if address %}
+                {{ address.flat_house_building }}<br>
+                {{ address.area_street_village }}<br>
+                {{ address.town_city }}, {{ address.state }}, {{ address.pincode }}<br>
+            {% else %}
+                No address provided<br>
+            {% endif %}
+            India<br>
+            <div class="mt-1">Phone: {{ request.user.mobile }}</div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <h5 class="fw-bold mb-2" style="font-size: 15px; color: #333;">Shipping Address</h5>
+        <div style="font-size: 14px; color: #666; line-height: 1.6;">
+            <div class="text-dark mb-1">
+                {% if request.user.profile.full_name %}{{ request.user.profile.full_name }}{% elif request.user.full_name %}{{ request.user.full_name }}{% else %}{{ request.user.mobile }}{% endif %}
+            </div>
+            {% if address %}
+                {{ address.flat_house_building }}<br>
+                {{ address.area_street_village }}<br>
+                {{ address.town_city }}, {{ address.state }}, {{ address.pincode }}<br>
+            {% else %}
+                No address provided<br>
+            {% endif %}
+            India<br>
+            <div class="mt-1">Phone: {{ request.user.mobile }}</div>
+        </div>
+    </div>
+
+    <!-- Order Summary Bottom Card -->
+    <h4 class="fw-bold px-3 mt-4 mb-2" style="font-size: 18px; color: #333;">Order Summary</h4>
+    <div class="info-card mt-2 mb-4">
+        <div class="detail-row">
+            <span class="detail-label">Items:</span>
+            <span class="detail-value fw-bold">Rs. {{ subtotal|floatformat:2 }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Packing:</span>
+            <span class="detail-value">Rs. 0.00</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Total before Tax:</span>
+            <span class="detail-value">Rs. {{ subtotal|floatformat:2 }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Tax:</span>
+            <span class="detail-value">Rs. {{ tax|floatformat:2 }}</span>
+        </div>
+        <div class="detail-row mt-3 pt-3" style="border-top: 1px solid #eee;">
+            <span class="detail-label fw-bold text-dark" style="font-size: 15px;">Order Total:</span>
+            <span class="detail-value fw-bold" style="font-size: 15px; color: #b94a2c;">Rs. {{ total|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    {% include 'components/costumerfooter.html' %}
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Customer Menu{% endblock %}
+
+{% block All_Content %}
+<div class="customer-menu-container bg-light" style="min-height: 100vh; padding-bottom: 80px;">
+    {% include 'components/header.html' %}
+
+    <div class="container px-3 mt-4">
+        <!-- Orders Section -->
+        <h5 class="fw-bold mb-3" style="color: #212121;" data-translate="orders">Orders</h5>
+        <div class="card mb-4 border-0 shadow-sm" style="border-radius: 8px;">
+            <div class="list-group list-group-flush" style="border-radius: 8px;">
+                <a href="{% url 'customer_orders' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <span style="color: #424242; font-size: 16px;" data-translate="your_orders">Your Orders</span>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+                    <span style="color: #424242; font-size: 16px;" data-translate="review_your_purchase">Review Your Purchase</span>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Account Settings Section -->
+        <h5 class="fw-bold mb-3" style="color: #212121;" data-translate="account_settings">Account Settings</h5>
+        <div class="card mb-4 border-0 shadow-sm" style="border-radius: 8px;">
+            <div class="list-group list-group-flush" style="border-radius: 8px;">
+                <a href="{% url 'customer_login_security' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <span style="color: #424242; font-size: 16px;" data-translate="login_and_security">Login & Security</span>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </a>
+                <a href="{% url 'customer_address_list' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <span style="color: #424242; font-size: 16px;" data-translate="your_address">Your Address</span>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </a>
+                <a href="{% url 'seller_onboarding_step' 1 %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <span style="color: #424242; font-size: 16px;" data-translate="manage_seller_account">Manage Your Seller Account</span>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </a>
+                <a href="{% url 'customer_switch_account' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+                    <span style="color: #424242; font-size: 16px;" data-translate="switch_account">Switch Account</span>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Data & Privacy Section -->
+        <h5 class="fw-bold mb-3" style="color: #212121;" data-translate="data_and_privacy">Data & Privacy</h5>
+        <div class="card mb-4 border-0 shadow-sm" style="border-radius: 8px;">
+            <div class="list-group list-group-flush" style="border-radius: 8px;">
+                <a href="{% url 'customer_legal_about' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <span style="color: #424242; font-size: 16px;" data-translate="legal_and_about">Legal & About</span>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </a>
+                <a href="{% url 'customer_notifications' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <span style="color: #424242; font-size: 16px;" data-translate="notification">Notification</span>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </a>
+                <a href="{% url 'customer_privacy_notice' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+                    <span style="color: #424242; font-size: 16px;" data-translate="privacy_notice">Privacy Notice</span>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Register/Log Out Section -->
+        <h5 class="fw-bold mb-3" style="color: #212121;" data-translate="register_log_out">Register/Log Out</h5>
+        <div class="card mb-4 border-0 shadow-sm" style="border-radius: 8px;">
+            <div class="list-group list-group-flush" style="border-radius: 8px;">
+                <form method="post" action="{% url 'logout' %}" class="m-0 p-0 d-block">
+                    {% csrf_token %}
+                    <button type="submit" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 w-100 border-0 text-start" style="border-radius: 8px;">
+                        <span style="color: #424242; font-size: 16px;" data-translate="log_out">Log Out</span>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Account Section -->
+        <div class="card border-0 shadow-sm" style="border-radius: 8px; margin-bottom: 20px;">
+            <div class="list-group list-group-flush" style="border-radius: 8px;">
+                <a href="#" onclick="confirmDeleteAccount()" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-0">
+                    <span class="text-danger fw-bold" style="font-size: 16px;" data-translate="delete_account">Delete Account</span>
+                    <i class="bi bi-trash text-danger"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% include 'components/costumerfooter.html' %}
+</div>
+
+<!-- Add bootstrap icons link if not in base -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<script>
+    function confirmDeleteAccount() {
+        if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+            window.location.href = "{% url 'customer_delete_account' %}";
+        }
+    }
+</script>
+
+{% endblock %}

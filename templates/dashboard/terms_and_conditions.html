@@ -1,0 +1,29 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% block all_title %}Terms and Conditions{% endblock all_title %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-3">
+        <a href="{% url 'user_profile' %}" class="text-decoration-none text-dark mb-3 d-inline-block">
+            &larr; Terms and Conditions
+        </a>
+    </div>
+
+    <p style="font-size: 16px; line-height: 1.8; color: #555;">
+        Welcome to our Terms and Conditions page. By accessing or using our services, you agree to comply with and be bound by the following terms and conditions. Please read them carefully before using our website or services.
+    </p>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const termsText = document.querySelector('.container p')?.innerText;
+
+        if (termsText && window.voiceFormAssist) {
+            window.voiceFormAssist.speakText(termsText);
+        }
+    });
+</script>
+{% endblock scripts %}

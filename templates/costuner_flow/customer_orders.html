@@ -1,0 +1,231 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Your Orders{% endblock %}
+
+{% block allStyles %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+    }
+    
+    .checkout-wrapper {
+        background-color: #ffffff;
+        min-height: 100vh;
+        max-width: 425px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .custom-radio {
+        width: 18px;
+        height: 18px;
+        accent-color: #b94a2c;
+    }
+
+    /* Hide notification bell from standard header for this page */
+    .custom-header .notification-btn {
+        display: none !important;
+    }
+
+</style>
+{% endblock %}
+
+{% block All_Content %}
+<div class="checkout-wrapper d-flex flex-column" style="padding-bottom: 80px;">
+    
+    {% include 'components/header.html' %}
+    
+    <!-- Header -->
+    <div class="bg-white d-flex justify-content-between align-items-center px-3 py-3 border-bottom sticky-top">
+        <div class="d-flex align-items-center">
+            <h5 class="fw-bold m-0" style="font-size: 18px; color: #333;">Your Orders</h5>
+        </div>
+        <button type="button" class="btn p-0 d-flex align-items-center text-muted" style="border: none; background: transparent;" data-bs-toggle="offcanvas" data-bs-target="#filterBottomSheet">
+            <i class="bi bi-funnel fs-5 me-1" style="color: #b94a2c;"></i>
+            <span style="font-size: 14px; font-weight: 500; color: #555;">Filter</span>
+        </button>
+    </div>
+
+    <!-- Main Content List -->
+    <div id="order-list-container" class="px-3 flex-grow-1" style="padding-bottom: 24px;">
+        {% include 'costuner_flow/partials/order_list_content.html' %}
+    </div>
+
+    <!-- Filter Bottom Sheet -->
+    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="filterBottomSheet" style="height: auto; max-height: 90vh; max-width: 425px; margin: 0 auto; border-top-left-radius: 16px; border-top-right-radius: 16px;">
+        <div class="offcanvas-header border-bottom px-3 py-3 d-flex justify-content-between align-items-center">
+            <h5 class="offcanvas-title fw-bold m-0" style="font-size: 16px; color: #333;">Filters</h5>
+            <button type="button" class="btn text-danger p-0 fw-bold m-0" data-bs-dismiss="offcanvas" style="font-size: 14px; border: none; background: transparent;">Close</button>
+        </div>
+        
+        <div class="offcanvas-body px-3 pb-4" style="overflow-y: auto;">
+            <form id="filter-form">
+                <!-- Status Filter -->
+                <h6 class="fw-bold mb-3 mt-1" style="font-size: 15px; color: #333;">Filter By Order Status</h6>
+                
+                <div class="row g-2 mb-4">
+                    <div class="col-6">
+                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                            <input type="radio" name="status" class="custom-radio me-2" value="">
+                            <span style="font-size: 14px; color: #444;">All</span>
+                        </label>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                            <input type="radio" name="status" class="custom-radio me-2" value="PENDING">
+                            <span style="font-size: 14px; color: #444;">Pending</span>
+                        </label>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                            <input type="radio" name="status" class="custom-radio me-2" value="PROCESSING">
+                            <span style="font-size: 14px; color: #444;">Processing</span>
+                        </label>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                            <input type="radio" name="status" class="custom-radio me-2" value="SHIPPED">
+                            <span style="font-size: 14px; color: #444;">Shipped</span>
+                        </label>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                            <input type="radio" name="status" class="custom-radio me-2" value="DELIVERED">
+                            <span style="font-size: 14px; color: #444;">Delivered</span>
+                        </label>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                            <input type="radio" name="status" class="custom-radio me-2" value="CANCELLED">
+                            <span style="font-size: 14px; color: #444;">Cancelled</span>
+                        </label>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                            <input type="radio" name="status" class="custom-radio me-2" value="RETURNED">
+                            <span style="font-size: 14px; color: #444;">Returned</span>
+                        </label>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                            <input type="radio" name="status" class="custom-radio me-2" value="REFUNDED">
+                            <span style="font-size: 14px; color: #444;">Refunded</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Date Filter -->
+                <h6 class="fw-bold mb-3 mt-4 border-top pt-4" style="font-size: 15px; color: #333;">Filter By Order Date</h6>
+                
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="last_30_days">
+                    <span style="font-size: 14px; color: #444;">Last 30 Days</span>
+                </label>
+                
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="last_3_months">
+                    <span style="font-size: 14px; color: #444;">Last 3 Months</span>
+                </label>
+                
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="2024">
+                    <span style="font-size: 14px; color: #444;">2024</span>
+                </label>
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="2023">
+                    <span style="font-size: 14px; color: #444;">2023</span>
+                </label>
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="2022">
+                    <span style="font-size: 14px; color: #444;">2022</span>
+                </label>
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="2021">
+                    <span style="font-size: 14px; color: #444;">2021</span>
+                </label>
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="2020">
+                    <span style="font-size: 14px; color: #444;">2020</span>
+                </label>
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="2019">
+                    <span style="font-size: 14px; color: #444;">2019</span>
+                </label>
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="2018">
+                    <span style="font-size: 14px; color: #444;">2018</span>
+                </label>
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="2017">
+                    <span style="font-size: 14px; color: #444;">2017</span>
+                </label>
+                <label class="d-flex align-items-center w-100 mb-3 border-bottom pb-2" style="cursor: pointer;">
+                    <input type="radio" name="date_filter" class="custom-radio me-2" value="2016">
+                    <span style="font-size: 14px; color: #444;">2016</span>
+                </label>
+            </form>
+            
+            <button type="button" id="apply-filters-btn" class="btn btn-danger w-100 py-3 rounded mt-3 mb-2" style="font-weight: 600; font-size: 16px; background-color: #b94a2c; border: none;">
+                Apply
+            </button>
+        </div>
+    </div>
+    
+    {% include 'components/costumerfooter.html' %}
+</div>
+{% endblock %}
+
+{% block AllScript %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const applyBtn = document.getElementById('apply-filters-btn');
+        const filterForm = document.getElementById('filter-form');
+        const container = document.getElementById('order-list-container');
+        
+        // Setup offcanvas to close programmatically
+        let bsOffcanvas = null;
+        if (typeof bootstrap !== 'undefined') {
+            const filterEl = document.getElementById('filterBottomSheet');
+            if(filterEl) {
+                bsOffcanvas = new bootstrap.Offcanvas(filterEl);
+            }
+        }
+        
+        applyBtn.addEventListener('click', function() {
+            const formData = new FormData(filterForm);
+            const params = new URLSearchParams(formData).toString();
+            
+            // Show loading state
+            container.style.opacity = '0.5';
+            
+            // Fetch filtered results
+            fetch(`{% url 'customer_orders' %}?${params}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.html) {
+                    container.innerHTML = data.html;
+                }
+                container.style.opacity = '1';
+                
+                // Hide offcanvas
+                if (bsOffcanvas) {
+                    bsOffcanvas.hide();
+                } else {
+                    // Fallback close logic
+                    document.querySelector('[data-bs-dismiss="offcanvas"]').click();
+                }
+            })
+            .catch(err => {
+                console.error("Failed to load filtered orders:", err);
+                container.style.opacity = '1';
+            });
+        });
+    });
+</script>
+{% endblock %}

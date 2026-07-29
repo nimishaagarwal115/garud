@@ -1,0 +1,80 @@
+{% load static %}
+<footer class="mobile-footer" style="padding-top: 59px;">
+  <div class="footer-nav">
+    <ul class="footer-menu" style="display: flex; justify-content: space-around; width: 100%; padding: 0; margin: 0; list-style: none; align-items: flex-end;">
+      <!-- Product List -->
+      <li class="footer-item list">
+        <a href="{% url 'product_list' %}" style="display:flex; flex-direction:column; align-items:center; text-decoration:none;">
+          <i class="bi bi-list-ul" style="font-size: 24px; color: #777;"></i>
+          <span style="font-size: 12px; color: #777;">उत्पाद सूची</span>
+        </a>
+      </li>
+      <!-- Help -->
+      <li class="footer-item list">
+        <a href="{% url 'seller_help' %}" style="display:flex; flex-direction:column; align-items:center; text-decoration:none;">
+          <img src="{% static 'images/components/footer_icons/sahayak.png' %}" alt="Help" class="icon">
+          <span style="font-size: 12px; color: #777;">सहायता</span>
+        </a>
+      </li>
+      <!-- Add Product -->
+      <li class="footer-item center-item list active" style="margin-top: -20px;">
+        <a href="{% url 'upload_wizard' %}" style="display:flex; flex-direction:column; align-items:center; text-decoration:none;">
+          <span class="icon shadow" style="background: #d94b2b; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-plus-lg text-white" style="font-size: 24px;"></i>
+          </span>
+          <span style="font-size: 12px; color: #d94b2b; margin-top:5px; font-weight: bold;">उत्पाद जोड़</span>
+        </a>
+      </li>
+      <!-- Orders -->
+      <li class="footer-item list">
+        <a href="{% url 'seller_orders_list' %}" style="display:flex; flex-direction:column; align-items:center; text-decoration:none;">
+          <i class="bi bi-box-seam" style="font-size: 24px; color: #777;"></i>
+          <span style="font-size: 12px; color: #777;">ऑर्डर</span>
+        </a>
+      </li>
+      <!-- Profile/Menu (offcanvas) -->
+      <li class="footer-item list">
+        <a href="#" data-bs-toggle="offcanvas" data-bs-target="#garudMenu" aria-controls="garudMenu" style="display:flex; flex-direction:column; align-items:center; text-decoration:none;">
+          {% if request.user.is_authenticated and request.user.photo %}
+            <img src="{{ request.user.photo.url }}" alt="Profile" class="profile-pic" style="border-radius: 50%; object-fit: cover; width: 24px; height: 24px; margin-bottom: 2px;">
+          {% else %}
+            <img src="{% static 'images/account/profile.png' %}" alt="Profile" class="profile-pic" style="border-radius: 50%; object-fit: cover; width: 24px; height: 24px; margin-bottom: 2px;">
+          {% endif %}
+          <span style="font-size: 12px; color: #777;">रुपरेखा</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</footer>
+
+<!-- Offcanvas Menu Wrapper -->
+<div class="garud-menu-wrapper">
+  <!-- Offcanvas Menu -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="garudMenu" aria-labelledby="garudMenuLabel">
+    <div class="offcanvas-header" style="border-bottom: 1px solid #e0e0e0;">
+      <h5 class="offcanvas-title" id="garudMenuLabel">Menu</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <ul class="mb-4 p-0 profile-settings-menu" style="list-style: none;">
+          <li style="border-bottom: 1px solid #e0e0e0;">
+              <a href="{% url 'user_profile_details' %}" class="d-flex justify-content-between align-items-center py-3 text-dark text-decoration-none">
+                  <span style="font-size: 1.1rem;">Profile Settings</span>
+              </a>
+          </li>
+          <li style="border-bottom: 1px solid #e0e0e0;">
+              <a href="{% url 'language_settings' %}" class="d-flex justify-content-between align-items-center py-3 text-dark text-decoration-none">
+                  <span style="font-size: 1.1rem;">Language Preference</span>
+              </a>
+          </li>
+      </ul>
+      <div class="mt-4">
+          <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn text-white w-100" style="background: #000; border-radius: 8px; padding: 12px;">Log Out</button>
+          </form>
+      </div>
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="{% static 'css/components/costumerfooter.css' %}">

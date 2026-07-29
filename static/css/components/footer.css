@@ -1,0 +1,149 @@
+:root {
+  --clr-bg: #fff;
+  --clr-primary: #bd3a23;
+  --clr-shadow: rgba(0, 0, 0, 0.2);
+}
+
+footer.mobile-footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 425px;   /* Match main's max-width */
+  display: flex;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.footer-nav {
+  background: var(--clr-bg);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 -10px 10px var(--clr-shadow);
+  position: relative;
+}
+
+.footer-menu {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 12px 0 12px;
+  list-style: none;
+  margin: 0;
+  position: relative;
+}
+
+.footer-item {
+  text-align: center;
+  flex: 1;
+  z-index: 1;
+}
+
+.footer-item a {
+  text-decoration: none;
+  color: #6e6e6e;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: 0.3s ease;
+}
+
+/* Active color for icon and text */
+.footer-item.active a {
+  color: var(--clr-primary);
+}
+
+.footer-item .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-item .icon img {
+  width: 26px;
+  height: 26px;
+}
+
+.footer-item .text {
+  margin-top: 4px;
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+
+.footer-item a:hover,
+.footer-item.active a {
+  color: var(--clr-primary);
+}
+
+.center-item {
+  position: relative;
+  top: -38px;
+  z-index: 2;
+  flex: 0 0 90px;
+}
+
+.center-item .text {
+  font-size: 0.9em;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  margin-top: 4px;
+  color: #fff;
+}
+
+.center-item .icon {
+  font-size: 28px;
+  margin-bottom: 0;
+  color: #fff;
+}
+
+/* Middle (center) item stays white */
+.footer-item.center-item.active a {
+  color: #fff;
+}
+
+/* Profile image default style */
+.footer-item .profile-pic {
+  width: 34px;
+  height: 34px;
+  border: 2px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.indicator {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 80px;
+  background: var(--clr-primary);
+  border-radius: 50%;
+  border: 6px solid #d7d7d7;
+  z-index: 0;
+  box-shadow: 0px 5px 20px 0px #d7d7d7;
+}
+
+.indicator::before,
+.indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 25px;
+  background: transparent;
+  box-shadow: 0px -10px 2px 0px #d7d7d7;
+}
+
+.indicator::before {
+  left: -22px;
+  border-top-right-radius: 20px;
+}
+
+.indicator::after {
+  right: -22px;
+  border-top-left-radius: 20px;
+}

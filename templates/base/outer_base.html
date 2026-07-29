@@ -1,0 +1,39 @@
+{% extends './base.html' %}
+{% load static %}
+
+{% block all_title %}
+    {% block title %}{% endblock %}
+{% endblock %}
+
+{% block allStyles %}
+    <style>
+        .skiptranslate {
+            display: none !important;
+        }
+        
+        body {
+            top: 0 !important;
+        }
+    </style>
+    {% block styles %}{% endblock %}
+{% endblock %}
+
+{% block allCssFiles %}
+    {% block css_files %}{% endblock %}
+{% endblock allCssFiles %}
+
+{% block All_Content %}
+{% include "components/header.html" %}
+    {% block content %}{% endblock content %}
+{% endblock %}
+
+{% block AllScript %}
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+            integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+            crossorigin="anonymous"></script>
+
+    <script src="{% static 'js/voiceFormAssist.js' %}"></script>
+
+
+    {% block script %}{% endblock script %}
+{% endblock %}

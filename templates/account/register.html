@@ -1,0 +1,19 @@
+<h3 class="mb-4 text-center">
+    {% if role == 'Seller' %}कारीगर पंजीकरण (Artisan Register)
+    {% else %}ग्राहक पंजीकरण (Customer Register){% endif %}
+</h3>
+<form method="post" action="?role={{ role }}">
+    {% csrf_token %}
+    <label>Mobile:</label>
+    <input type="text" name="mobile" required><br>
+    <label>Mobile OTP:</label>
+    <input type="text" name="mobile_otp"><br>
+    <label>Email:</label>
+    <input type="email" name="email"><br>
+    <label>Email OTP:</label>
+    <input type="text" name="email_otp"><br>
+    <label>Full Name:</label>
+    <input type="text" name="fullname"><br>
+    <button type="submit">Register</button>
+</form>
+{% if message %}<p>{{ message }}</p>{% endif %}

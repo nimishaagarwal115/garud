@@ -1,0 +1,182 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+{% block content %}
+{{ block.super }}
+
+{% if not is_included %}
+{% endif %}
+
+
+<!-- Top bar -->
+<div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
+  <a class="back-btn" style="font-size: 24px; text-decoration: none; color: #333;" onclick="window.history.back(); return false;">←</a>
+  <div class="step-info-text" style="text-align: right; margin-left: auto;">
+    <div class="step-line">Step 2</div>
+    <div class="step-line sub">Income & Occupation</div>
+  </div>
+</div>
+
+<div class="aadhaar-verification-outer">
+  <form method="post" class="aadhaar-form" style="max-width: 480px; margin: 0 auto;">
+    {% csrf_token %}
+    
+    {% if not is_included %}
+    <!-- Display form errors if any -->
+    {% if form.errors %}
+    <div class="alert alert-danger" style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px;">
+      {% for field, errors in form.errors.items %}
+      <strong>{{ field }}:</strong>
+      {% for error in errors %}
+      <div>{{ error }}</div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+    
+    <!-- Annual Income Field -->
+    <div class="form-group mb-4">
+      <label for="id_annual_income" class="form-label fw-bold" style="font-weight: bold; margin-bottom: 8px; display: block;">Annual Income</label>
+      <div class="input-group">
+        {{ form.annual_income }}
+        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('id_annual_income').value = ''" style="padding: 8px 12px; border: 1px solid #ccc;">×</button>
+      </div>
+      {% if not is_included and form.annual_income.errors %}
+      <div class="text-danger mt-1" style="color: #dc3545; margin-top: 4px;">
+        {% for error in form.annual_income.errors %}
+        <small>{{ error }}</small>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    
+    <div style="margin: 32px 0 24px 0; text-align: center;">
+      <div style="font-size: 1.1rem; color: #222;">
+        Please enter your annual income and occupation, then click Continue.
+      </div>
+    </div>
+    <div style="display: flex; justify-content: center; gap: 16px;">
+      {% if not is_included %}
+      <a href="{% url 'aadhaar_verification' %}" class="btn" style="background: #f7b731; color: #222; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Go Back</a>
+      {% endif %}
+      <button type="submit" class="btn btn-danger" id="submitBtn" style="background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 4px;">Continue</button>
+    </div>
+  </form>
+</div>
+<div style="text-align:center; margin-top:30px;">
+  <button id="speakNowBtn" class="btn btn-warning" style="font-size:1.2rem; padding:12px 32px; margin-bottom:16px;">Speak Now</button>
+  <div id="voiceResult" style="margin-top:18px; font-size:1.1rem; color:#222;"></div>
+</div>
+{% endblock %}
+{% block dashboard_script %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.aadhaar-form');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    console.log('Annual Income & Occupation page loaded');
+    
+    form.addEventListener('submit', function(e) {
+        console.log('Form submit triggered');
+        
+        const annualIncomeValue = document.getElementById('id_annual_income').value;
+        const occupationValue = document.getElementById('id_occupation').value;
+        
+        console.log('Annual income value:', annualIncomeValue);
+        console.log('Occupation value:', occupationValue);
+        
+        // Validate annual income
+        if (!annualIncomeValue || annualIncomeValue.trim() === '') {
+            e.preventDefault();
+            alert('Please enter your annual income');
+            return false;
+        }
+        
+        if (isNaN(annualIncomeValue) || parseInt(annualIncomeValue) < 0) {
+            e.preventDefault();
+            alert('Please enter a valid annual income (positive number)');
+            return false;
+        }
+        
+      
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Processing...';
+        
+        console.log('Form validation passed, submitting...');
+    });
+});
+document.addEventListener("DOMContentLoaded", function () {
+    const annualIncomeInput = document.getElementById("id_annual_income");
+    const speakBtn = document.getElementById("speakNowBtn");
+    const voiceResult = document.getElementById("voiceResult");
+
+    // TTS: Welcome prompt
+    if (window.voiceFormAssist) {
+        window.voiceFormAssist.speakText("step 2 of Sellers verification. Please enter your annual income. You can use your voice by clicking the Speak Now button.");
+    }
+
+    speakBtn.addEventListener("click", function () {
+        voiceResult.textContent = "Listening... Please say your annual income.";
+        // Use browser STT with timeout
+        if (window.voiceFormAssist && window.voiceFormAssist.recognition) {
+            window.voiceFormAssist.recognition.lang = window.USER_LANG_CODE || "en-IN";
+            window.voiceFormAssist.recognition.interimResults = false;
+            window.voiceFormAssist.recognition.maxAlternatives = 1;
+            let listening = true;
+            let timeoutId = setTimeout(function () {
+                if (listening) {
+                    window.voiceFormAssist.recognition.stop();
+                    voiceResult.textContent = "Listening timed out. Please try again.";
+                    window.voiceFormAssist.speakText("Listening timed out. Please try again.");
+                }
+            }, 15000); // 15 seconds
+            window.voiceFormAssist.recognition.onresult = function (event) {
+                listening = false;
+                clearTimeout(timeoutId);
+                const transcript = event.results[0][0].transcript;
+                const digits = transcript.replace(/\D/g, "");
+                if (digits.length > 0) {
+                    annualIncomeInput.value = digits;
+                    annualIncomeInput.focus();
+                    voiceResult.textContent = "Annual income entered: " + digits;
+                    window.voiceFormAssist.speakText("Annual income entered successfully. Please click Continue to proceed.");
+                } else {
+                    voiceResult.textContent = "Could not detect a valid income amount. Please try again.";
+                    window.voiceFormAssist.speakText("Sorry, I could not detect a valid income amount. Please try again.");
+                }
+            };
+            window.voiceFormAssist.recognition.onerror = function (event) {
+                listening = false;
+                clearTimeout(timeoutId);
+                voiceResult.textContent = "Speech recognition error: " + event.error;
+                window.voiceFormAssist.speakText("Speech recognition error. Please try again.");
+            };
+            window.voiceFormAssist.recognition.onend = function () {
+                listening = false;
+                clearTimeout(timeoutId);
+            };
+            window.voiceFormAssist.recognition.start();
+        } else {
+            // Fallback to default
+            window.voiceFormAssist.startRecognition(function (transcript) {
+                const digits = transcript.replace(/\D/g, "");
+                if (digits.length > 0) {
+                    annualIncomeInput.value = digits;
+                    annualIncomeInput.focus();
+                    voiceResult.textContent = "Annual income entered: " + digits;
+                    window.voiceFormAssist.speakText("Annual income entered successfully. Please click Continue to proceed.");
+                } else {
+                    voiceResult.textContent = "Could not detect a valid income amount. Please try again.";
+                    window.voiceFormAssist.speakText("Sorry, I could not detect a valid income amount. Please try again.");
+                }
+            });
+        }
+    });
+});
+</script>
+
+
+{% if not is_included %}
+{% endif %}
+{% endblock %}

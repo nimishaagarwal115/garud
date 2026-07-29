@@ -1,0 +1,113 @@
+{% extends "base/base_dashboard.html" %}
+{% block title %}Occupation{% endblock %} 
+{% load static %}
+{% block content %}
+{% if not is_included %}
+{% endif %}
+
+<!-- Top bar -->
+<div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
+  <a class="back-btn" style="font-size: 24px; text-decoration: none; color: #333;" onclick="window.history.back(); return false;">←</a>
+  <div class="step-info-text" style="text-align: right; margin-left: auto;">
+    <div class="step-line">Step 3</div>
+    <div class="step-line sub">Occupation</div>
+  </div>
+</div>
+
+<div class="aadhaar-verification-outer">
+  <form method="post" class="aadhaar-form" style="max-width: 480px; margin: 0 auto;">
+    {% csrf_token %}
+    <label for="id_occupation" style="font-weight: bold;">Occupation</label>
+    {{ form.occupation }}
+    <div style="margin: 32px 0 24px 0; text-align: center;">
+      <div style="font-size: 1.1rem; color: #222;">
+        If your occupation is correct, click Next. Otherwise, go back.
+      </div>
+    </div>
+    <div style="display: flex; justify-content: center; gap: 16px;">
+      <a href="{% url 'annual_income' %}" class="btn" style="background: #f7b731; color: #222;">Go Back</a>
+      <button type="submit" class="btn btn-danger">Next</button>
+    </div>
+  </form>
+</div>
+
+<div style="text-align:center; margin-top:30px;">
+  <button id="speakOccupationBtn" class="btn btn-warning" style="font-size:1.2rem; padding:12px 32px; margin-bottom:16px;">Speak Now</button>
+  <div id="occupationVoiceResult" style="margin-top:18px; font-size:1.1rem; color:#222;"></div>
+</div>
+
+{% if not is_included %}
+{% endif %}
+{% endblock %}
+{% block dashboard_script %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const occupationInput = document.getElementById("id_occupation");
+    const speakBtn = document.getElementById("speakOccupationBtn");
+    const voiceResult = document.getElementById("occupationVoiceResult");
+
+    // TTS: Welcome prompt
+    if (window.voiceFormAssist) {
+        window.voiceFormAssist.speakText("Welcome to Sellers verification step 3. Please enter your occupation. You can use your voice by clicking the Speak Occupation button.");
+    }
+
+    if (speakBtn) {
+      speakBtn.addEventListener("click", function () {
+        voiceResult.textContent = "Listening... Please say your occupation.";
+        // Use browser STT with timeout
+        if (window.voiceFormAssist && window.voiceFormAssist.recognition) {
+            window.voiceFormAssist.recognition.lang = window.USER_LANG_CODE || "en-IN";
+            window.voiceFormAssist.recognition.interimResults = false;
+            window.voiceFormAssist.recognition.maxAlternatives = 1;
+            let listening = true;
+            let timeoutId = setTimeout(function () {
+                if (listening) {
+                    window.voiceFormAssist.recognition.stop();
+                    voiceResult.textContent = "Listening timed out. Please try again.";
+                    window.voiceFormAssist.speakText("Listening timed out. Please try again.");
+                }
+            }, 15000); // 15 seconds
+            window.voiceFormAssist.recognition.onresult = function (event) {
+                listening = false;
+                clearTimeout(timeoutId);
+                const transcript = event.results[0][0].transcript;
+                if (transcript && transcript.length > 2) {
+                    occupationInput.value = transcript.trim();
+                    occupationInput.focus();
+                    voiceResult.textContent = "Occupation entered: " + occupationInput.value;
+                    window.voiceFormAssist.speakText("Occupation entered successfully. Please click Next to proceed.");
+                } else {
+                    voiceResult.textContent = "Could not detect a valid occupation. Please try again.";
+                    window.voiceFormAssist.speakText("Sorry, I could not detect a valid occupation. Please try again.");
+                }
+            };
+            window.voiceFormAssist.recognition.onerror = function (event) {
+                listening = false;
+                clearTimeout(timeoutId);
+                voiceResult.textContent = "Speech recognition error: " + event.error;
+                window.voiceFormAssist.speakText("Speech recognition error. Please try again.");
+            };
+            window.voiceFormAssist.recognition.onend = function () {
+                listening = false;
+                clearTimeout(timeoutId);
+            };
+            window.voiceFormAssist.recognition.start();
+        } else {
+            // Fallback to default
+            window.voiceFormAssist.startRecognition(function (transcript) {
+                if (transcript && transcript.length > 2) {
+                    occupationInput.value = transcript.trim();
+                    occupationInput.focus();
+                    voiceResult.textContent = "Occupation entered: " + occupationInput.value;
+                    window.voiceFormAssist.speakText("Occupation entered successfully. Please click Next to proceed.");
+                } else {
+                    voiceResult.textContent = "Could not detect a valid occupation. Please try again.";
+                    window.voiceFormAssist.speakText("Sorry, I could not detect a valid occupation. Please try again.");
+                }
+            });
+        }
+      });
+    }
+});
+</script>
+{% endblock %}

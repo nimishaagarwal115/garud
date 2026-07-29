@@ -1,0 +1,191 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% block all_title %}Profile{% endblock all_title %}
+{% block styles %}
+    <style>
+    /* Ensure the form doesn't get hidden under bottom navbar */
+    form {
+        padding-bottom: 100px; /* adjust if needed */
+    }
+
+    /* Optional: Ensure save button isn't flush with edge */
+    button[type="submit"] {
+        margin-top: 1.5rem;
+    }
+</style>
+{% endblock styles %}
+{% block content %}
+    <!-- Debug: Check if forms exist -->
+    {% if not user_form %}
+        <div class="alert alert-warning">Warning: user_form not found in context</div>
+    {% endif %}
+    {% if not profile_form %}
+        <div class="alert alert-warning">Warning: profile_form not found in context</div>
+    {% endif %}
+    {% if not govt_form %}
+        <div class="alert alert-warning">Warning: govt_form not found in context</div>
+    {% endif %}
+    {% if not gst_form %}
+        <div class="alert alert-warning">Warning: gst_form not found in context</div>
+    {% endif %}
+    
+    <div class="container p-4">
+        <a href="{% url 'user_profile' %}" class="text-decoration-none text-dark d-inline-flex align-items-center mb-3" style="font-size: 18px;">
+            <i class="fas fa-arrow-left me-2"></i> <span class="notranslate" translate="no">रूपरेखा</span>
+        </a>
+        <h1 class="page-title notranslate" translate="no" style="margin: 0 0 20px 0; font-size: 24px; font-weight: 500; color: #333;">व्यक्तिगत सूचना</h1>
+        
+        <!-- Success Message -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Display form errors if any -->
+        {% if user_form.errors or profile_form.errors or govt_form.errors %}
+        <div class="alert alert-danger">
+            <h6>Please fix the following errors:</h6>
+            {% if user_form.errors %}
+                {% for field, errors in user_form.errors.items %}
+                    {% for error in errors %}
+                        <div>{{ field|title }}: {{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+            {% if profile_form.errors %}
+                {% for field, errors in profile_form.errors.items %}
+                    {% for error in errors %}
+                        <div>{{ field|title }}: {{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+            {% if govt_form.errors %}
+                {% for field, errors in govt_form.errors.items %}
+                    {% for error in errors %}
+                        <div>{{ field|title }}: {{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+            {% if gst_form.errors %}
+                {% for field, errors in gst_form.errors.items %}
+                    {% for error in errors %}
+                        <div>{{ field|title }}: {{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Profile Photo Upload with Preview -->
+            <div class="mb-4">
+                <label class="notranslate" translate="no" style="font-size: 14px; color: #666; margin-bottom: 8px; display: block;">फोटो</label>
+                <div class="d-flex align-items-center">
+                    <label for="id_profile_picture" style="cursor: pointer; display: inline-block; position: relative;">
+                        {% if user.photo %}
+                            <img id="profile-preview" src="{{ user.photo.url }}" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                            <img id="profile-preview" src="{% static 'images/account/profile.png' %}" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% endif %}
+                    </label>
+                    <div class="ms-3 d-flex flex-column">
+                        <label for="id_profile_picture" class="btn btn-sm btn-outline-primary mb-2 notranslate" translate="no">बदलें</label>
+                        <button type="button" class="btn btn-sm btn-outline-danger notranslate" translate="no" onclick="removeProfilePhoto()">हटाएं</button>
+                    </div>
+                </div>
+                {{ user_form.photo }} 
+                <input type="hidden" name="remove_photo" id="id_remove_photo" value="false">
+            </div>
+
+            <div class="row notranslate" translate="no">
+                <!-- Name -->
+                <div class="col-md-6 mb-3 position-relative">
+                    <label style="font-size: 14px; color: #666; margin-bottom: 5px;">अपना नाम</label>
+                    {{ profile_form.full_name }}
+                    <i class="fas fa-edit" style="position: absolute; right: 25px; top: 40px; color: #888;"></i>
+                </div>
+                <!-- Age -->
+                <div class="col-md-6 mb-3 position-relative">
+                    <label style="font-size: 14px; color: #666; margin-bottom: 5px;">उम्र</label>
+                    {{ profile_form.age }}
+                    <i class="fas fa-edit" style="position: absolute; right: 25px; top: 40px; color: #888;"></i>
+                </div>
+                
+                <!-- Aadhar Card -->
+                <div class="col-md-6 mb-3 position-relative">
+                    <label style="font-size: 14px; color: #666; margin-bottom: 5px;">आधार कार्ड नंबर</label>
+                    {{ govt_form.aadhar_card_number }}
+                    <i class="fas fa-edit" style="position: absolute; right: 25px; top: 40px; color: #888;"></i>
+                </div>
+                <!-- Mobile Number -->
+                <div class="col-md-6 mb-3 position-relative">
+                    <label style="font-size: 14px; color: #666; margin-bottom: 5px;">मोबाइल नंबर</label>
+                    {{ user_form.mobile }}
+                    <i class="fas fa-edit" style="position: absolute; right: 25px; top: 40px; color: #888;"></i>
+                </div>
+                <!-- GST Number -->
+                <div class="col-md-6 mb-3 position-relative">
+                    <label style="font-size: 14px; color: #666; margin-bottom: 5px;">GST नंबर</label>
+                    {{ govt_form.gst_number }}
+                    <i class="fas fa-edit" style="position: absolute; right: 25px; top: 40px; color: #888;"></i>
+                </div>
+                <!-- Shop / Business Name -->
+                <div class="col-md-6 mb-3 position-relative">
+                    <label style="font-size: 14px; color: #666; margin-bottom: 5px;">दुकान / व्यवसाय का नाम</label>
+                    {{ gst_form.business_name }}
+                    <i class="fas fa-edit" style="position: absolute; right: 25px; top: 40px; color: #888;"></i>
+                </div>
+                
+                <!-- Occupation -->
+                <div class="col-md-6 mb-3 position-relative">
+                    <label style="font-size: 14px; color: #666; margin-bottom: 5px;">व्यवसाय</label>
+                    {{ profile_form.occupation }}
+                    <i class="fas fa-edit" style="position: absolute; right: 25px; top: 40px; color: #888;"></i>
+                </div>
+                
+                <!-- Hidden fields for other form data to prevent validation errors -->
+                <div style="display: none;">
+                    {{ profile_form.gender }}
+                    {{ profile_form.annual_income }}
+                    {{ govt_form.pan_card_number }}
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-danger w-100 py-3 notranslate" translate="no" style="background-color: #c0392b; border: none; font-size: 16px;">सेव करें</button>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block dashboard_script %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('id_profile_picture').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-preview').src = e.target.result;
+                    document.getElementById('id_remove_photo').value = 'false';
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    });
+
+    function removeProfilePhoto() {
+        document.getElementById('profile-preview').src = "{% static 'images/account/profile.png' %}";
+        document.getElementById('id_profile_picture').value = ""; // clear file input
+        document.getElementById('id_remove_photo').value = "true";
+    }
+</script>
+{% endblock dashboard_script %}
+
+{% block scripts %}
+    <script src="{% static 'js/dashboard/profile_details.js' %}"></script>
+{% endblock scripts %}

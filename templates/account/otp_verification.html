@@ -1,0 +1,66 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+
+{% block title %}Verify OTP{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'css/account/otp_verification.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="main">
+        <div class="text-center">
+            <img src="{% static 'images/account/otp_verification.png' %}" alt="Verify OTP" class="otp-image">
+        </div>
+
+        <h1 class="otp-heading">Enter Verification Code</h1>
+        <p class="otp-subtext">
+            We are automatically detecting a SMS sent to your mobile number {{ phone }}
+        </p>
+
+        <form id="otp-verification-form" method="post">
+            {% csrf_token %}
+            <div class="input-box d-flex">
+                {% for field in form %}
+                <div class="col-2 px-1">
+                    {{ field }}
+                </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn-verify w-100">SUBMIT</button>
+        </form>
+
+        <div class="resend-section">
+            Don’t receive the OTP? <a href="#" id="resend-otp">RESEND OTP</a> 
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        function moveToNext(current, nextFieldID) {
+            if (current.value.length >= 1) {
+                const nextField = document.getElementById(nextFieldID);
+                if (nextField) {
+                    nextField.focus();
+                }
+            }
+        }
+    </script>
+    <script>
+        window.addEventListener("load", () => {
+            window.speechSynthesis.cancel();
+
+            // wait for voiceFormAssist to initialize (if needed)
+            setTimeout(() => {
+                if (window.voiceFormAssist?.startOtpVoiceInput) {
+                    window.voiceFormAssist.startOtpVoiceInput({
+                        formSelector: "#otp-verification-form",
+                        lang: window.USER_LANG_CODE || "hi-IN"
+                    });
+                }
+            }, 5000);
+        });
+    </script>
+
+{% endblock %}

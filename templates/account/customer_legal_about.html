@@ -1,0 +1,173 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+
+{% block title %}Legal & About{% endblock %}
+
+{% block styles %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+    }
+    .page-container {
+        max-width: 768px;
+        margin: 0 auto;
+        padding: 24px;
+        background-color: #ffffff;
+        min-height: calc(100vh - 60px);
+        color: #1a1a1a;
+    }
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 32px;
+        color: #1a1a1a;
+    }
+    .section-card {
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    .section-heading {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #d94b2b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .section-content {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #424242;
+    }
+    .section-content p {
+        margin-bottom: 12px;
+    }
+    .section-content p:last-child {
+        margin-bottom: 0;
+    }
+    .section-content ul {
+        margin-top: 8px;
+        margin-bottom: 12px;
+        padding-left: 20px;
+    }
+    .section-content li {
+        margin-bottom: 8px;
+    }
+    .footer-info {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #eeeeee;
+        color: #757575;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1 class="page-title">Legal & About</h1>
+    
+    <div class="section-card">
+        <h2 class="section-heading">About Garud</h2>
+        <div class="section-content">
+            <p>Garud is a digital marketplace that connects talented Indian artisans directly with customers. Our platform celebrates India's rich cultural heritage by helping artisans showcase authentic handmade products while providing customers with a trusted shopping experience.</p>
+            <p>Garud aims to reduce dependency on intermediaries, promote fair trade, and preserve traditional crafts through technology.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Our Mission</h2>
+        <div class="section-content">
+            <p>To empower artisans by providing them with a digital platform that enables them to reach customers across India while ensuring transparency, fair pricing, and sustainable growth.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Our Vision</h2>
+        <div class="section-content">
+            <p>To become India's most trusted online marketplace for authentic handmade products and support artisan communities through innovation and responsible commerce.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Terms of Use</h2>
+        <div class="section-content">
+            <p>By using Garud, you agree to:</p>
+            <ul>
+                <li>Provide accurate account information.</li>
+                <li>Use the platform responsibly.</li>
+                <li>Respect artisans and other users.</li>
+                <li>Avoid fraudulent, abusive, or unlawful activities.</li>
+                <li>Comply with all applicable laws while using the platform.</li>
+            </ul>
+            <p>Garud reserves the right to suspend or terminate accounts that violate these terms.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Orders & Payments</h2>
+        <div class="section-content">
+            <ul>
+                <li>Orders are confirmed only after successful payment.</li>
+                <li>Prices shown on the platform are inclusive or exclusive of applicable taxes as displayed.</li>
+                <li>Garud reserves the right to cancel fraudulent or suspicious transactions.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Shipping & Delivery</h2>
+        <div class="section-content">
+            <p>Delivery timelines may vary depending on:</p>
+            <ul>
+                <li>Product availability</li>
+                <li>Artisan location</li>
+                <li>Delivery destination</li>
+                <li>Courier partner availability</li>
+            </ul>
+            <p>Customers can track their orders through the app.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Returns & Refunds</h2>
+        <div class="section-content">
+            <p>Returns may be accepted for:</p>
+            <ul>
+                <li>Damaged products</li>
+                <li>Incorrect items delivered</li>
+                <li>Defective products</li>
+            </ul>
+            <p>Refunds are processed after successful verification according to the platform's refund policy.</p>
+            <p>Customized or personalized handmade products may not be eligible for return unless damaged or defective.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Intellectual Property</h2>
+        <div class="section-content">
+            <p>All content available on Garud, including logos, text, graphics, images, and application design, belongs to Garud or the respective artisans and is protected under applicable intellectual property laws.</p>
+            <p>Unauthorized copying, reproduction, or distribution is prohibited.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Contact Us</h2>
+        <div class="section-content">
+            <p><strong>Email:</strong><br>support@garud.com</p>
+            <p><strong>Support Hours:</strong><br>Monday – Saturday<br>9:00 AM – 6:00 PM (IST)</p>
+        </div>
+    </div>
+
+    <div class="footer-info">
+        <p><strong>Garud</strong></p>
+        <p>Version 1.0.0</p>
+        <p>Made with ❤️ for Indian Artisans</p>
+    </div>
+</div>
+{% include 'components/costumerfooter.html' %}
+{% endblock %}

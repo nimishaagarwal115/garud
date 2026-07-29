@@ -1,0 +1,103 @@
+{% extends 'base/outer_base.html' %}
+{% block title %}Profile - TechnoAce{% endblock %}
+{% block content %}
+<div class="text-center mb-4">
+    <div class="position-relative d-inline-block">
+        {% if user.photo %}
+            <img src="{{ user.photo.url }}" class="rounded-circle shadow" width="120" height="120" id="profile-photo">
+        {% else %}
+            <img src="/static/images/default-avatar.png" class="rounded-circle shadow" width="120" height="120" id="profile-photo">
+        {% endif %}
+        <label for="photo-upload" class="position-absolute bottom-0 end-0 bg-primary rounded-circle p-2" style="cursor:pointer;">
+            <i class="bi bi-camera text-white"></i>
+            <input type="file" id="photo-upload" name="photo" class="d-none" accept="image/*">
+        </label>
+    </div>
+    <h4 class="mt-3">{{ user.fullname }}</h4>
+    <p class="mb-1"><strong>Mobile:</strong> {{ user.mobile }}</p>
+    <p class="mb-1"><strong>Email:</strong> {{ user.email }}</p>
+    <p class="mb-1"><span class="badge bg-success" {% if not user.is_mobile_verified %}style="display:none"{% endif %}>Mobile Verified</span>
+        <span class="badge bg-danger" {% if user.is_mobile_verified %}style="display:none"{% endif %}>Mobile Not Verified</span>
+    </p>
+    <p class="mb-1"><span class="badge bg-success" {% if not user.is_email_verified %}style="display:none"{% endif %}>Email Verified</span>
+        <span class="badge bg-danger" {% if user.is_email_verified %}style="display:none"{% endif %}>Email Not Verified</span>
+    </p>
+    <div class="mt-3">
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger me-2">Logout</a>
+        <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#editProfileForm" aria-expanded="false" aria-controls="editProfileForm">
+            Edit Profile
+        </button>
+        <button class="btn btn-outline-warning ms-2" id="deactivate-btn" type="button">Deactivate Profile</button>
+    </div>
+</div>
+<div class="collapse mt-4" id="editProfileForm">
+    <form id="profile-edit-form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" name="fullname" value="{{ user.fullname }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mobile</label>
+            <input type="text" class="form-control" name="mobile" value="{{ user.mobile }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mobile OTP</label>
+            <input type="text" class="form-control" name="mobile_otp" placeholder="Enter OTP if changing mobile">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" value="{{ user.email }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email OTP</label>
+            <input type="text" class="form-control" name="email_otp" placeholder="Enter OTP if changing email">
+        </div>
+        <button type="submit" class="btn btn-success w-100">Update Profile</button>
+    </form>
+</div>
+{% if message %}<div class="alert alert-info mt-3 text-center">{{ message }}</div>{% endif %}
+
+<!-- Bootstrap Icons CDN for camera icon -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<script>
+document.getElementById('photo-upload').addEventListener('change', function() {
+    var fileInput = this;
+    var formData = new FormData();
+    formData.append('photo', fileInput.files[0]);
+    fetch('/api/account/users/{{ user.id }}/update_photo/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success && data.data.photo){
+            document.getElementById('profile-photo').src = data.data.photo;
+        }
+        alert(data.message || 'Photo updated!');
+    });
+});
+
+document.getElementById('deactivate-btn').addEventListener('click', function() {
+    if(confirm('Are you sure you want to deactivate your profile?')) {
+        fetch('/api/account/users/{{ user.id }}/deactivate/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || 'Profile deactivated!');
+            if(data.success){
+                window.location.href = '{% url "logout" %}';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

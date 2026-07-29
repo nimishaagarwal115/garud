@@ -1,0 +1,307 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+{% block title %}Order Summary{% endblock %}
+
+{% block content %}
+<style>
+.discount-badge { background-color: #cc0000; color: #fff; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+.qty-form button:hover { background-color: #f1f1f1 !important; color: #333 !important; }
+</style>
+
+<div class="checkout-wrapper d-flex flex-column" style="background-color: #ffffff; min-height: 100vh;">
+    <!-- Simple Header (No Search) -->
+    <div class="bg-white d-flex justify-content-between align-items-center px-3 py-3 border-bottom sticky-top">
+        <div class="d-flex align-items-center">
+            <a href="javascript:void(0)" onclick="window.history.back();" class="text-dark text-decoration-none me-3">
+                <i class="bi bi-arrow-left fs-4"></i>
+            </a>
+            <h5 class="fw-bold m-0" style="font-size: 18px; color: #333;">Order Summary</h5>
+        </div>
+        <a href="{% url 'cart' %}" class="text-danger text-decoration-none" style="font-size: 14px;">Cancel</a>
+    </div>
+
+    <div class="checkout-container px-3 py-4 flex-grow-1">
+
+        <!-- Order Summary Card -->
+        <div class="card mb-4" style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: none;">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted" style="font-size: 14px;">Shipping to:</span>
+                    <span class="fw-bold text-dark text-truncate ms-2" style="font-size: 14px; max-width: 200px;">
+                        {{ selected_address.full_name }}, {{ selected_address.flat_house_building }}
+                    </span>
+                </div>
+                
+                <hr class="my-2" style="border-top: 1px solid #eee; opacity: 1;">
+                
+                <div class="d-flex justify-content-between mb-2 mt-3">
+                    <span class="text-muted" style="font-size: 14px;">Items:</span>
+                    <span class="fw-bold" style="font-size: 14px;" id="summary-items-total">₹ {{ items_total_offer|floatformat:2 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted" style="font-size: 14px;">Delivery:</span>
+                    <span class="fw-bold" style="font-size: 14px;" id="summary-delivery">₹ {{ delivery_charges|floatformat:2 }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="fw-bold text-dark" style="font-size: 15px;">Order Total:</span>
+                    <span class="fw-bold text-dark" style="font-size: 15px;" id="summary-order-total">₹ {{ order_total|floatformat:2 }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="fw-bold text-danger" style="font-size: 14px;" id="summary-savings">
+                            Your Savings: ₹ {{ total_savings|floatformat:2 }} 
+                            {% if items_total_mrp > 0 %}
+                            ({% widthratio total_savings items_total_mrp 100 %}%)
+                            {% endif %}
+                        </div>
+                        <div class="text-muted mt-1" style="font-size: 13px;">Item Discount</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deliver To Card -->
+        <h6 class="fw-bold mb-3" style="font-size: 15px; color: #333;">Deliver To</h6>
+        <div class="card mb-4" style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: none;">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="fw-bold mb-0" style="font-size: 15px; color: #333;">{{ selected_address.full_name }}</h6>
+                    <a href="{% url 'checkout_address_selection' %}" class="text-danger fw-bold text-decoration-none" style="font-size: 14px;">Change</a>
+                </div>
+                <p class="text-muted mb-0" style="font-size: 14px; line-height: 1.5;">
+                    {{ selected_address.flat_house_building }}, {{ selected_address.area_street_village }}<br>
+                    {{ selected_address.town_city }}, {{ selected_address.state }} - {{ selected_address.pincode }}
+                </p>
+                {% if selected_address.mobile_number %}
+                <p class="text-muted mt-2 mb-0" style="font-size: 14px;">
+                    Phone: {{ selected_address.mobile_number }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <!-- Get It By Card -->
+        <h6 class="fw-bold mb-3" style="font-size: 15px; color: #333;">Get It By</h6>
+        <div class="card mb-4" style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: none;">
+            <div class="card-body p-3">
+                <h6 class="fw-bold mb-1" style="font-size: 15px; color: #333;">{{ delivery_date|date:"l d M" }}</h6>
+                <p class="text-muted mb-0" style="font-size: 13px;">Free Delivery</p>
+            </div>
+        </div>
+        
+        <!-- Cart Items -->
+        <div id="cart-items-container">
+            {% for item in cart_items %}
+            <div class="card mb-4 cart-item-card" data-item-id="{{ item.id }}" style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: none;">
+                <div class="card-body p-3">
+                    <div class="d-flex mb-3">
+                        <div class="me-3 flex-shrink-0" style="width: 90px; height: 90px; border-radius: 6px; overflow: hidden; background-color: #f5f5f5;">
+                            {% if item.product.media.first %}
+                            <img src="{{ item.product.media.first.image.url }}" alt="{{ item.product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" alt="Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1 d-flex flex-column justify-content-center">
+                            <h6 class="text-dark mb-2" style="font-size: 14px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                {{ item.product.name }}
+                            </h6>
+                            <div class="d-flex align-items-center flex-wrap">
+                                <span class="fw-bold text-dark me-2" style="font-size: 14px;">₹ {{ item.product.offer_price|default:item.product.price|floatformat:0 }}</span>
+                                {% if item.product.offer_price and item.product.price %}
+                                <span class="text-muted text-decoration-line-through me-2" style="font-size: 12px;">₹ {{ item.product.price|floatformat:0 }}</span>
+                                <span class="discount-badge">-{% widthratio item.product.price|add:"-"|add:item.product.offer_price item.product.price 100 %}%</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-light rounded d-flex justify-content-between align-items-center px-3 py-2 border" style="border-color: #eee;">
+                        <span class="text-muted" style="font-size: 14px;">Quantity:</span>
+                        
+                        <div class="d-flex align-items-center">
+                            <form action="{% url 'cart_update_quantity' item.id %}" method="post" class="qty-form m-0 p-0 d-flex align-items-center">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-secondary p-0 d-flex justify-content-center align-items-center" style="width: 26px; height: 26px; border-radius: 4px; background: white; border-color: #ccc;">-</button>
+                                <span class="qty-display text-dark fw-bold mx-3" style="font-size: 14px; width: 12px; text-align: center;">{{ item.quantity }}</span>
+                                <button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-secondary p-0 d-flex justify-content-center align-items-center" style="width: 26px; height: 26px; border-radius: 4px; background: white; border-color: #ccc;">+</button>
+                            </form>
+                            
+                            <form action="{% url 'cart_remove_item' item.id %}" method="post" class="remove-form m-0 p-0 ms-4 border-start ps-3" style="border-color: #ddd !important;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm text-danger p-0 border-0 bg-transparent">
+                                    <i class="bi bi-trash fs-5"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+    </div>
+
+    <!-- Fixed Bottom Place Order Button -->
+    <div class="mt-auto px-3 pb-4 pt-3 bg-white border-top sticky-bottom">
+        {% csrf_token %}
+        <button id="pay-now-btn" type="button" class="btn btn-danger w-100 py-3 rounded" style="font-weight: 600; font-size: 16px; background-color: #b94a2c; border: none;">
+            Place Your Order And Pay
+        </button>
+    </div>
+</div>
+
+<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function bindCartEvents() {
+        document.querySelectorAll('.qty-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const url = form.action;
+                const formData = new FormData(form);
+                const submitter = e.submitter;
+                if(submitter && submitter.name) {
+                    formData.append(submitter.name, submitter.value);
+                }
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        form.querySelector('.qty-display').textContent = data.quantity;
+                        updateSummary(data);
+                    }
+                })
+                .catch(() => console.error('Network error.'));
+            });
+        });
+
+        document.querySelectorAll('.remove-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const url = form.action;
+                const formData = new FormData(form);
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        form.closest('.cart-item-card').remove();
+                        if (document.querySelectorAll('.cart-item-card').length === 0) {
+                            window.location.href = "{% url 'cart' %}";
+                        } else {
+                            updateSummary(data);
+                        }
+                    }
+                })
+                .catch(() => console.error('Network error.'));
+            });
+        });
+    }
+
+    function updateSummary(data) {
+        document.getElementById('summary-items-total').textContent = '₹ ' + parseFloat(data.items_total_offer).toFixed(2);
+        
+        // Ensure cart_total exists, fallback to items_total_offer if delivery is 0
+        const orderTotal = data.cart_total !== undefined ? data.cart_total : data.items_total_offer;
+        document.getElementById('summary-order-total').textContent = '₹ ' + parseFloat(orderTotal).toFixed(2);
+        
+        const savingsPercent = data.items_total_mrp > 0 ? Math.round((data.total_savings / data.items_total_mrp) * 100) : 0;
+        let savingsText = 'Your Savings: ₹ ' + parseFloat(data.total_savings).toFixed(2);
+        if (savingsPercent > 0) {
+            savingsText += ' (' + savingsPercent + '%)';
+        }
+        document.getElementById('summary-savings').textContent = savingsText;
+    }
+
+    bindCartEvents();
+
+    const payNowBtn = document.getElementById("pay-now-btn");
+    if(payNowBtn) {
+        payNowBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            const btn = this;
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+            fetch("{% url 'create_order' %}", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    cart_total: "{{ order_total }}"
+                })
+            })
+            .then(response => response.json())
+            .then(orderRes => {
+                if (orderRes.status === "error") {
+                    alert(orderRes.message || "Failed to create order.");
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                    return;
+                }
+                const cashfree = Cashfree({mode: orderRes.environment});
+                let checkoutOptions = {
+                    paymentSessionId: orderRes.api_response.payment_session_id,
+                    redirectTarget: "_modal",
+                };
+                cashfree.checkout(checkoutOptions).then(function(result) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                    if (result.error) {
+                        alert("Payment canceled!");
+                        return;
+                    }
+                    if (result.paymentDetails) {
+                        fetch("{% url 'payment_verify' %}", {
+                            method: "POST",
+                            credentials: "same-origin",
+                            headers: {
+                                "X-Requested-With": "XMLHttpRequest",
+                                "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                order_id: orderRes.order_id,
+                                payment_details: result.paymentDetails,
+                                address_id: "{{ selected_address.id }}"
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(verifyRes => {
+                            if (verifyRes.status) {
+                                window.location.href = "{% url 'checkout_success' %}";
+                            } else {
+                                alert("Payment verification failed.");
+                            }
+                        });
+                    }
+                });
+            })
+            .catch(() => {
+                alert("Payment initiation failed.");
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+
+{% block title %}Privacy Notice{% endblock %}
+
+{% block styles %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+    }
+    .page-container {
+        max-width: 768px;
+        margin: 0 auto;
+        padding: 24px;
+        background-color: #ffffff;
+        min-height: calc(100vh - 60px);
+        color: #1a1a1a;
+    }
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 32px;
+        color: #1a1a1a;
+    }
+    .section-card {
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    .section-heading {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #d94b2b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .section-content {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #424242;
+    }
+    .section-content p {
+        margin-bottom: 12px;
+    }
+    .section-content p:last-child {
+        margin-bottom: 0;
+    }
+    .section-content ul {
+        margin-top: 8px;
+        margin-bottom: 12px;
+        padding-left: 20px;
+    }
+    .section-content li {
+        margin-bottom: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1 class="page-title">Privacy Notice</h1>
+    
+    <div class="section-card">
+        <h2 class="section-heading">Introduction</h2>
+        <div class="section-content">
+            <p>Your privacy is important to us. This Privacy Notice explains how Garud collects, uses, stores, and protects your personal information.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Information We Collect</h2>
+        <div class="section-content">
+            <p>We may collect:</p>
+            <ul>
+                <li>Name</li>
+                <li>Email address</li>
+                <li>Mobile number</li>
+                <li>Shipping addresses</li>
+                <li>Order history</li>
+                <li>Wishlist</li>
+                <li>Payment status</li>
+                <li>Device information required for app functionality</li>
+            </ul>
+            <p>Garud does not store your card details or UPI PIN. Payments are processed securely through trusted payment gateways.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">How We Use Your Information</h2>
+        <div class="section-content">
+            <p>Your information is used to:</p>
+            <ul>
+                <li>Create and manage your account.</li>
+                <li>Process orders.</li>
+                <li>Deliver products.</li>
+                <li>Send order updates and notifications.</li>
+                <li>Improve the app experience.</li>
+                <li>Detect fraud and enhance security.</li>
+                <li>Provide customer support.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Sharing Your Information</h2>
+        <div class="section-content">
+            <p>Garud shares only the information necessary to complete your orders with:</p>
+            <ul>
+                <li>Verified artisans</li>
+                <li>Delivery partners</li>
+                <li>Secure payment providers</li>
+            </ul>
+            <p>We do not sell your personal information to third parties.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Data Security</h2>
+        <div class="section-content">
+            <p>We use appropriate security measures to protect your information against unauthorized access, loss, or misuse.</p>
+            <p>Although we strive to keep your information secure, no internet-based service can guarantee complete security.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Cookies & Analytics</h2>
+        <div class="section-content">
+            <p>Garud may use cookies or similar technologies to:</p>
+            <ul>
+                <li>Keep you signed in.</li>
+                <li>Remember your preferences.</li>
+                <li>Improve application performance.</li>
+                <li>Analyze usage patterns to enhance user experience.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Your Rights</h2>
+        <div class="section-content">
+            <p>You can:</p>
+            <ul>
+                <li>View your personal information.</li>
+                <li>Update your profile.</li>
+                <li>Manage saved addresses.</li>
+                <li>Delete your account.</li>
+                <li>Control notification preferences.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Children's Privacy</h2>
+        <div class="section-content">
+            <p>Garud is not intended for children under the age required by applicable law to use the service independently. If personal information is collected unintentionally, appropriate steps will be taken to remove it.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Policy Updates</h2>
+        <div class="section-content">
+            <p>This Privacy Notice may be updated from time to time. Significant changes will be communicated through the application when appropriate.</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="section-heading">Contact</h2>
+        <div class="section-content">
+            <p><strong>Email:</strong><br>privacy@garud.com</p>
+        </div>
+    </div>
+</div>
+{% include 'components/costumerfooter.html' %}
+{% endblock %}

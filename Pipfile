@@ -1,0 +1,47 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+asgiref = "==3.8.1"
+django-debug-toolbar = "==5.2.0"
+django-environ = "==0.12.0"
+pillow = "==11.2.1"
+pytesseract = "*"
+djangorestframework = "*"
+google-cloud-speech = "*"
+google-cloud-texttospeech = "*"
+google-cloud-translate = "*"
+aksharamukha = "*"
+django-filter = "*"
+djangorestframework-simplejwt = "*"
+django-phonenumber-field = "*"
+phonenumbers = "*"
+gunicorn = "*"
+daphne = "*"
+django-import-export = "*"
+whitenoise = "*"
+pycountry = "*"
+psycopg2-binary = "*"
+django-push-notifications = "*"
+celery = "*"
+django-celery-beat = "*"
+channels = "*"
+channels-redis = "*"
+django-cors-headers = "*"
+django-crontab = "*"
+django-browser-reload = "*"
+openai = "*"
+opencv-python = "*"
+django = "*"
+requests = "*"
+cashfree-pg = "*"
+python-dotenv = "*"
+razorpay = "*"
+google-generativeai = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.13"

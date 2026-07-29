@@ -1,0 +1,299 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block all_title %}सहायता{% endblock %}
+
+{% block styles %}
+<style>
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 150px);
+    background-color: #f8f9fa;
+    position: relative;
+  }
+  .chat-history {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    padding-bottom: 90px;
+  }
+  .chat-bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    position: relative;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  .chat-bubble.bot {
+    align-self: flex-start;
+    background-color: #f1f0f0;
+    color: #333;
+    border-top-left-radius: 4px;
+  }
+  .chat-bubble.user {
+    align-self: flex-end;
+    background-color: #fdf1ef;
+    color: #c73b27;
+    border-top-right-radius: 4px;
+  }
+  .chat-time {
+    font-size: 11px;
+    color: #888;
+    margin-top: 5px;
+  }
+  .bot-time { align-self: flex-start; margin-left: 55px; }
+  .user-time { align-self: flex-end; }
+  
+  .chat-input-wrapper {
+    position: fixed;
+    bottom: 75px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px; 
+    padding: 10px 15px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+  }
+  .chat-input {
+    flex-grow: 1;
+    border: 1px solid #ddd;
+    background: #e9ecef;
+    padding: 12px 20px;
+    border-radius: 24px;
+    font-size: 15px;
+    outline: none;
+    color: #555;
+  }
+  .voice-btn {
+    background: #c73b27;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  
+  .bot-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .bot-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .typing-indicator {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 16px;
+    background-color: #f1f0f0;
+    border-radius: 16px;
+    border-top-left-radius: 4px;
+    align-self: flex-start;
+    width: fit-content;
+  }
+  .typing-indicator span {
+    width: 6px;
+    height: 6px;
+    background-color: #888;
+    border-radius: 50%;
+    animation: blink 1.4s infinite both;
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+  }
+</style>
+{% endblock styles %}
+
+{% block content %}
+<div class="container px-3 mt-3">
+  <h2 class="mb-2" style="font-size: 22px; color: #444; font-weight: 500;">सहायता</h2>
+</div>
+
+<div class="chat-container">
+  <div class="chat-history" id="chat-history">
+    <!-- Default Bot Message -->
+    <div class="bot-row mb-2">
+      <img src="{% static 'images/extras/garud_sahayak.png' %}" alt="Garud Sahayak" class="bot-avatar" loading="lazy" onerror="this.onerror=null; this.src='{% static 'images/account/profile.png' %}';">
+      <div class="d-flex flex-column">
+        <div class="chat-bubble bot">
+          नमस्ते! मैं गरुड़ सहायक हूँ।<br><br>
+          मैं आपकी सहायता के लिए यहाँ हूँ।<br>
+          आप मुझसे ऐप, उत्पाद जोड़ने, ऑर्डर, प्रोफ़ाइल, भाषा, भुगतान और अन्य सुविधाओं के बारे में पूछ सकते हैं।
+        </div>
+        <div class="chat-time bot-time" id="init-time"></div>
+      </div>
+    </div>
+    
+    <!-- Typing Indicator -->
+    <div class="bot-row mb-2" id="typing-row" style="display: none;">
+      <img src="{% static 'images/extras/garud_sahayak.png' %}" alt="Garud Sahayak" class="bot-avatar" loading="lazy" onerror="this.onerror=null; this.src='{% static 'images/account/profile.png' %}';">
+      <div class="typing-indicator" id="typing-indicator">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-input-wrapper">
+    <input type="text" id="chat-input" class="chat-input" placeholder="एक टिप्पणी लिखें">
+    <button type="button" id="voice-send-btn" class="voice-btn">
+      <i class="bi bi-mic-fill" id="mic-icon" style="font-size: 20px;"></i>
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block dashboard_script %}
+<script src="{% static 'js/voice/GarudVoice.js' %}?v=4.0"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const chatHistory = document.getElementById('chat-history');
+    const chatInput = document.getElementById('chat-input');
+    const voiceSendBtn = document.getElementById('voice-send-btn');
+    const micIcon = document.getElementById('mic-icon');
+    const typingRow = document.getElementById('typing-row');
+    
+    let chatHistoryContext = [];
+    
+    // Set initial time
+    const now = new Date();
+    document.getElementById('init-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    function scrollToBottom() {
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function addMessage(text, isUser=true) {
+      chatHistoryContext.push({text: text, isUser: isUser});
+      const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      const wrapper = document.createElement('div');
+      
+      if(isUser) {
+        wrapper.className = 'd-flex flex-column mb-2';
+        wrapper.innerHTML = `
+          <div class="chat-bubble user">${text.replace(/\n/g, '<br>')}</div>
+          <div class="chat-time user-time">${timeStr}</div>
+        `;
+        chatHistory.insertBefore(wrapper, typingRow);
+      } else {
+        wrapper.className = 'bot-row mb-2';
+        wrapper.innerHTML = `
+          <img src="{% static 'images/extras/garud_sahayak.png' %}" alt="Garud Sahayak" class="bot-avatar" loading="lazy" onerror="this.onerror=null; this.src='{% static 'images/account/profile.png' %}';">
+          <div class="d-flex flex-column">
+            <div class="chat-bubble bot">${text.replace(/\n/g, '<br>')}</div>
+            <div class="chat-time bot-time" style="margin-left: 0;">${timeStr}</div>
+          </div>
+        `;
+        chatHistory.insertBefore(wrapper, typingRow);
+      }
+      scrollToBottom();
+    }
+
+    function showTyping() {
+      typingRow.style.display = 'flex';
+      scrollToBottom();
+    }
+
+    function hideTyping() {
+      typingRow.style.display = 'none';
+    }
+
+    function sendMessage(text) {
+      if(!text.trim()) return;
+      addMessage(text, true);
+      chatInput.value = '';
+      
+      showTyping();
+      
+      const currentMessage = chatHistoryContext.pop();
+      const historyToSend = [...chatHistoryContext];
+      
+      fetch('{% url "seller_help_api" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ message: text, history: historyToSend })
+      })
+      .then(response => response.json())
+      .then(data => {
+        hideTyping();
+        chatHistoryContext.push(currentMessage);
+        if(data.success) {
+          addMessage(data.response, false);
+        } else {
+          addMessage("क्षमा करें, कुछ गलत हो गया। कृपया पुनः प्रयास करें।", false);
+        }
+      })
+      .catch(err => {
+        hideTyping();
+        addMessage("नेटवर्क त्रुटि।", false);
+      });
+    }
+
+    chatInput.addEventListener('keypress', function(e) {
+      if(e.key === 'Enter') {
+        sendMessage(this.value);
+        micIcon.classList.remove('bi-send-fill');
+        micIcon.classList.add('bi-mic-fill');
+      }
+    });
+
+    chatInput.addEventListener('input', function() {
+      if(this.value.trim().length > 0) {
+        micIcon.classList.remove('bi-mic-fill');
+        micIcon.classList.add('bi-send-fill');
+      } else {
+        micIcon.classList.remove('bi-send-fill');
+        micIcon.classList.add('bi-mic-fill');
+      }
+    });
+
+    voiceSendBtn.addEventListener('click', function() {
+      if(chatInput.value.trim().length > 0) {
+        sendMessage(chatInput.value);
+        micIcon.classList.remove('bi-send-fill');
+        micIcon.classList.add('bi-mic-fill');
+      } else {
+        if(window.GarudVoice) {
+          window.GarudVoice.start("chat-input", "voice-send-btn", null, "text", function(transcript) {
+            micIcon.classList.remove('bi-mic-fill');
+            micIcon.classList.add('bi-send-fill');
+            setTimeout(() => {
+              if(chatInput.value.trim().length > 0) {
+                sendMessage(chatInput.value);
+                micIcon.classList.remove('bi-send-fill');
+                micIcon.classList.add('bi-mic-fill');
+              }
+            }, 1000);
+          });
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

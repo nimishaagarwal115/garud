@@ -1,0 +1,336 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block title %}Garud | Bank Details & Final Review{% endblock %}
+
+{% block All_Content %}
+<!-- Include Stepper -->
+{% include "seller/includes/onboarding_stepper.html" %}
+
+<div class="d-flex flex-column align-items-center px-4 py-5" style="min-height: 80vh; background-color: #f8f9fa;">
+    
+    <!-- ==================== SCREEN 8A: ACCOUNT NUMBER ==================== -->
+    <div id="voice-screen-account" class="w-100 d-flex flex-column align-items-center justify-content-center" style="max-width: 400px; margin-top: 40px;">
+        <div class="mb-5 text-center">
+            <button type="button" id="voice-btn-account" class="btn rounded-circle garud-mic-static-radar" style="width: 100px; height: 100px;">
+                <i class="bi bi-mic text-white" style="font-size: 2.5rem;"></i>
+            </button>
+        </div>
+        <p id="voice-status-account" class="text-center text-muted mb-4" style="font-size: 14px; min-height: 20px;"></p>
+        <h2 class="text-center mb-4" style="font-weight: 700; color: #333;" data-translate="tell_account_number">अपना खाता नंबर बतायें</h2>
+        <div class="input-group mt-3 px-3">
+            <input type="text" id="manual-account" class="form-control" placeholder="खाता नंबर (Account Number)" data-translate-placeholder="account_number_placeholder">
+            <button class="btn btn-danger" type="button" id="btn-next-account" data-translate="continue">आगे बढ़े</button>
+        </div>
+    </div>
+
+    <!-- ==================== SCREEN 8B: IFSC CODE ==================== -->
+    <div id="voice-screen-ifsc" class="w-100 flex-column align-items-center justify-content-center d-none" style="max-width: 400px; margin-top: 40px;">
+        <div class="mb-5 text-center">
+            <button type="button" id="voice-btn-ifsc" class="btn rounded-circle garud-mic-static-radar" style="width: 100px; height: 100px;">
+                <i class="bi bi-mic text-white" style="font-size: 2.5rem;"></i>
+            </button>
+        </div>
+        <p id="voice-status-ifsc" class="text-center text-muted mb-4" style="font-size: 14px; min-height: 20px;"></p>
+        <h2 class="text-center mb-4" style="font-weight: 700; color: #333;" data-translate="tell_ifsc_code">अपना IFSC कोड बतायें</h2>
+        <div class="input-group mt-3 px-3">
+            <input type="text" id="manual-ifsc" class="form-control text-uppercase" placeholder="IFSC कोड (IFSC Code)" data-translate-placeholder="ifsc_placeholder">
+            <button class="btn btn-danger" type="button" id="btn-next-ifsc" data-translate="continue">आगे बढ़े</button>
+        </div>
+    </div>
+
+    <!-- ==================== SCREEN 8C: HOLDER NAME ==================== -->
+    <div id="voice-screen-holder" class="w-100 flex-column align-items-center justify-content-center d-none" style="max-width: 400px; margin-top: 40px;">
+        <div class="mb-5 text-center">
+            <button type="button" id="voice-btn-holder" class="btn rounded-circle garud-mic-static-radar" style="width: 100px; height: 100px;">
+                <i class="bi bi-mic text-white" style="font-size: 2.5rem;"></i>
+            </button>
+        </div>
+        <p id="voice-status-holder" class="text-center text-muted mb-4" style="font-size: 14px; min-height: 20px;"></p>
+        <h2 class="text-center mb-4" style="font-weight: 700; color: #333;" data-translate="tell_holder_name">खाता होल्डर का नाम बतायें</h2>
+        <div class="input-group mt-3 px-3">
+            <input type="text" id="manual-holder" class="form-control" placeholder="खाता होल्डर का नाम (Holder Name)" data-translate-placeholder="holder_name_placeholder">
+            <button class="btn btn-danger" type="button" id="btn-next-holder" data-translate="continue">आगे बढ़े</button>
+        </div>
+    </div>
+
+    <!-- ==================== SCREEN 8D: FINAL REVIEW ==================== -->
+    <div id="confirmation-screen" class="w-100 d-none" style="max-width: 400px;">
+        
+        <form method="post" id="confirmation-form">
+            {% csrf_token %}
+            
+            <!-- SECTION 1: Personal Information -->
+            <h3 class="mb-4 text-center" style="font-weight: 700; color: #333;" data-translate="personal_information">व्यक्तिगत सूचना</h3>
+            
+            <div class="text-center mb-4">
+                <p class="text-muted mb-1" style="font-size: 12px;" data-translate="photo_label">फोटो</p>
+                {% if photo_url %}
+                    <img src="{{ photo_url }}" alt="Profile Photo" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;">
+                {% else %}
+                    <div class="rounded-circle border d-inline-flex align-items-center justify-content-center bg-light" style="width: 100px; height: 100px;">
+                        <i class="bi bi-person text-secondary" style="font-size: 3rem;"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="your_name">अपना नाम</label>
+                <div class="input-group">
+                    <input type="text" name="name" class="form-control form-control-lg bg-white" value="{{ user_name }}" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'name\']').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="aadhaar_number">आधार कार्ड नंबर</label>
+                <div class="input-group">
+                    <input type="text" name="aadhaar" class="form-control form-control-lg bg-white" value="{{ aadhaar_number }}" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'aadhaar\']').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="mobile_number">मोबाइल नंबर</label>
+                <div class="input-group">
+                    <input type="text" name="mobile" class="form-control form-control-lg bg-white" value="{{ mobile_number }}" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'mobile\']').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- SECTION 2: Business Information -->
+            <h3 class="mb-4 text-center mt-4" style="font-weight: 700; color: #333;" data-translate="shop_information">दुकान की सूचना</h3>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="gst_number">GST नंबर</label>
+                <div class="input-group">
+                    <input type="text" name="gst" class="form-control form-control-lg bg-white text-uppercase" value="{{ gst_number }}">
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'gst\']').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="shop_name">दुकान नाम</label>
+                <div class="input-group">
+                    <input type="text" name="shop_name" class="form-control form-control-lg bg-white" value="{{ shop_name }}" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'shop_name\']').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+
+            <!-- SECTION 3: Address -->
+            <h3 class="mb-4 text-center mt-4" style="font-weight: 700; color: #333;" data-translate="address_info">पता</h3>
+
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label text-muted" style="font-size: 13px;" data-translate="pincode">पिन कोड</label>
+                    <div class="input-group">
+                        <input type="text" name="pincode" class="form-control form-control-lg bg-white" value="{{ pincode }}" required>
+                        <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'pincode\']').value='';">
+                            <i class="bi bi-x-circle text-muted"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label text-muted" style="font-size: 13px;" data-translate="city">शहर</label>
+                    <div class="input-group">
+                        <input type="text" name="city" class="form-control form-control-lg bg-white" value="{{ city }}" required>
+                        <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'city\']').value='';">
+                            <i class="bi bi-x-circle text-muted"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label text-muted" style="font-size: 13px;" data-translate="district">जिला</label>
+                    <div class="input-group">
+                        <input type="text" name="zilla" class="form-control form-control-lg bg-white" value="{{ zilla }}" required>
+                        <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'zilla\']').value='';">
+                            <i class="bi bi-x-circle text-muted"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label text-muted" style="font-size: 13px;" data-translate="state">राज्य</label>
+                    <div class="input-group">
+                        <input type="text" name="state" class="form-control form-control-lg bg-white" value="{{ state }}" required>
+                        <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'state\']').value='';">
+                            <i class="bi bi-x-circle text-muted"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="building_street">बिल्डिंग नंबर, गली</label>
+                <div class="input-group">
+                    <input type="text" name="address" class="form-control form-control-lg bg-white" value="{{ address }}" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.querySelector('[name=\'address\']').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+
+            <!-- SECTION 4: Bank Information -->
+            <h3 class="mb-4 text-center mt-4" style="font-weight: 700; color: #333;" data-translate="bank_information">खाता सूचना</h3>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="account_holder_name">खाता होल्डर नाम</label>
+                <div class="input-group">
+                    <input type="text" id="final_card_holder_name" name="card_holder_name" class="form-control form-control-lg bg-white" value="{{ card_holder_name }}" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.getElementById('final_card_holder_name').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="account_number">खाता नंबर</label>
+                <div class="input-group">
+                    <input type="text" id="final_account_number" name="account_number" class="form-control form-control-lg bg-white" value="{{ account_number }}" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.getElementById('final_account_number').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-muted" style="font-size: 13px;" data-translate="ifsc_code">IFSC कोड</label>
+                <div class="input-group">
+                    <input type="text" id="final_ifsc_code" name="ifsc_code" class="form-control form-control-lg bg-white text-uppercase" value="{{ ifsc_code }}" required>
+                    <span class="input-group-text bg-white cursor-pointer" onclick="document.getElementById('final_ifsc_code').value='';">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <p class="text-center text-muted mb-4" style="font-size: 13px; line-height: 1.5;" data-translate="final_confirmation_instruction">
+                सभी विवरण सही हैं तो आगे बटन दबायें, अन्यथा वापस ठीक करें
+            </p>
+
+            <div class="d-flex flex-column gap-3 mt-4 mb-5">
+                <div class="d-flex justify-content-between gap-3">
+                    <button type="button" id="btn-back-to-voice" class="btn btn-warning w-50 py-3" style="font-size: 1rem; border-radius: 8px;" data-translate="back_button">वापस जाएँ</button>
+                    <button type="submit" class="btn btn-danger w-50 py-3" style="font-size: 1rem; border-radius: 8px;" data-translate="save_and_continue">सेव और जारी रखें</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block AllScript %}
+<script src="{% static 'js/voice/GarudNumberParser.js' %}?v=4.0"></script>
+<script src="{% static 'js/voice/GarudVoice.js' %}?v=4.0"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        
+        // Screens
+        const screenAcc = document.getElementById("voice-screen-account");
+        const screenIfsc = document.getElementById("voice-screen-ifsc");
+        const screenHolder = document.getElementById("voice-screen-holder");
+        const screenReview = document.getElementById("confirmation-screen");
+
+        // Voice buttons
+        const btnAcc = document.getElementById("voice-btn-account");
+        const btnIfsc = document.getElementById("voice-btn-ifsc");
+        const btnHolder = document.getElementById("voice-btn-holder");
+
+        // Manual Next buttons
+        const nextAcc = document.getElementById("btn-next-account");
+        const nextIfsc = document.getElementById("btn-next-ifsc");
+        const nextHolder = document.getElementById("btn-next-holder");
+        const btnBack = document.getElementById("btn-back-to-voice");
+
+        // Manual Inputs
+        const manualAcc = document.getElementById("manual-account");
+        const manualIfsc = document.getElementById("manual-ifsc");
+        const manualHolder = document.getElementById("manual-holder");
+
+        // Final Review Inputs
+        const finalAcc = document.getElementById("final_account_number");
+        const finalIfsc = document.getElementById("final_ifsc_code");
+        const finalHolder = document.getElementById("final_card_holder_name");
+
+        // Helpers to toggle visibility
+        function showScreen(screen) {
+            [screenAcc, screenIfsc, screenHolder, screenReview].forEach(s => {
+                s.classList.remove("d-flex");
+                s.classList.add("d-none");
+            });
+            screen.classList.remove("d-none");
+            if (screen !== screenReview) {
+                screen.classList.add("d-flex");
+            } else {
+                screen.classList.add("d-block");
+            }
+        }
+
+        // ================= FLOW LOGIC =================
+        
+        // 8A: Account Number
+        btnAcc.addEventListener("click", () => {
+            window.GarudVoice.start("manual-account", "voice-btn-account", "voice-status-account", "text", function(transcript) {
+                // Auto advance on success
+                const val = manualAcc.value.replace(/\s+/g, ''); // strip spaces
+                finalAcc.value = val;
+                showScreen(screenIfsc);
+            });
+        });
+        nextAcc.addEventListener("click", () => {
+            if(manualAcc.value) finalAcc.value = manualAcc.value;
+            showScreen(screenIfsc);
+        });
+
+        // 8B: IFSC
+        btnIfsc.addEventListener("click", () => {
+            window.GarudVoice.start("manual-ifsc", "voice-btn-ifsc", "voice-status-ifsc", "text", function(transcript) {
+                // Auto advance
+                const val = manualIfsc.value.replace(/\s+/g, '').toUpperCase();
+                finalIfsc.value = val;
+                showScreen(screenHolder);
+            });
+        });
+        nextIfsc.addEventListener("click", () => {
+            if(manualIfsc.value) finalIfsc.value = manualIfsc.value.toUpperCase();
+            showScreen(screenHolder);
+        });
+
+        // 8C: Holder Name
+        btnHolder.addEventListener("click", () => {
+            window.GarudVoice.start("manual-holder", "voice-btn-holder", "voice-status-holder", "text", function(transcript) {
+                // Auto advance to review
+                finalHolder.value = manualHolder.value;
+                showScreen(screenReview);
+            });
+        });
+        nextHolder.addEventListener("click", () => {
+            if(manualHolder.value) finalHolder.value = manualHolder.value;
+            showScreen(screenReview);
+        });
+
+        // Review Back Button
+        btnBack.addEventListener("click", () => {
+            showScreen(screenAcc);
+            document.getElementById("voice-status-account").textContent = "";
+        });
+    });
+</script>
+{% endblock %}

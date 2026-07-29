@@ -1,0 +1,84 @@
+{% extends 'base/outer_base.html' %}
+{% block title %}Verify - TechnoAce{% endblock %}
+{% block content %}
+<h3 class="mb-4 text-center">
+    {% if role == 'Seller' %}कारीगर सत्यापन (Artisan Verify)
+    {% else %}ग्राहक सत्यापन (Customer Verify){% endif %}
+</h3>
+<form method="post" action="?role={{ role }}">
+    {% csrf_token %}
+    <input type="hidden" name="mobile" value="{{ mobile }}">
+    {% if ask_mpin %}
+        <div class="mb-3">
+            <label for="mpin" class="form-label">Enter MPIN</label>
+            <input type="password" class="form-control" id="mpin" name="mpin" maxlength="4" required placeholder="4-digit MPIN">
+        </div>
+        <div class="mb-3 text-end">
+            <a href="#" id="forgot-mpin-link">Forgot MPIN?</a>
+        </div>
+    {% else %}
+        <div class="mb-3">
+            <label for="otp" class="form-label">Enter OTP</label>
+            <input type="text" class="form-control" id="otp" name="otp" maxlength="4" required placeholder="4-digit OTP">
+        </div>
+    {% endif %}
+    <div id="otp-section" style="display:none;">
+        <div class="mb-3">
+            <label for="otp_forgot" class="form-label">Enter OTP</label>
+            <input type="text" class="form-control" id="otp_forgot" name="otp_forgot" maxlength="4" placeholder="4-digit OTP">
+        </div>
+    </div>
+    <button type="submit" class="btn btn-success w-100">Login</button>
+</form>
+{% if message %}<div class="alert alert-danger mt-3">{{ message }}</div>{% endif %}
+<script>
+
+    function sendOTP(mobile, login) {
+        fetch('/api/get-otp/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ device: mobile, purpose: purpose })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('OTP sent successfully.');
+            }
+        })
+        .catch(error => {
+            alert('Error sending OTP.');
+        });
+    }
+
+    // Example usage: call when 'Forgot MPIN?' is clicked
+    document.addEventListener('DOMContentLoaded', function() {
+        var forgotLink = document.getElementById('forgot-mpin-link');
+        if (forgotLink) {
+            forgotLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('mpin').disabled = true;
+                document.getElementById('otp-section').style.display = 'block';
+                var mobile = document.querySelector('input[name="mobile"]').value;
+                sendOTP(mobile, 'login');
+            });
+        }
+    });
+
+// Toggle OTP input if user clicks 'Forgot MPIN?'
+{% comment %} document.addEventListener('DOMContentLoaded', function() {
+    var forgotLink = document.getElementById('forgot-mpin-link');
+    if (forgotLink) {
+        forgotLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('mpin').disabled = true;
+            document.getElementById('otp-section').style.display = 'block';
+        });
+    }
+}); {% endcomment %}
+</script>
+{% endblock %}

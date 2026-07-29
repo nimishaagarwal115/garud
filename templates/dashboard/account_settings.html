@@ -1,0 +1,66 @@
+{% extends 'base/base_dashboard.html' %}
+
+{% load static %}
+{% block all_title %}Bank Account Settings{% endblock all_title %}
+
+{% block content %}
+    <div class="container py-3">
+        <a href="{% url 'user_profile' %}" class="text-decoration-none text-dark d-inline-flex align-items-center mb-3" style="font-size: 18px;">
+            <i class="fas fa-arrow-left me-2"></i> <span class="notranslate" translate="no">खाता सेटिंग</span>
+        </a>
+        
+        <h1 class="page-title notranslate" translate="no" style="margin: 0 0 20px 0; font-size: 24px; font-weight: 500; color: #333;">खाता सूचना</h1>
+
+        <!-- Success Message -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-3 position-relative notranslate" translate="no">
+                <label class="form-label" style="font-size: 14px; color: #666; margin-bottom: 5px;">खाता होल्डर नाम</label>
+                {{ form.card_holder_name }}
+                <i class="fas fa-edit" style="position: absolute; right: 15px; top: 40px; color: #888;"></i>
+            </div>
+            
+            <div class="mb-3 position-relative notranslate" translate="no">
+                <label class="form-label" style="font-size: 14px; color: #666; margin-bottom: 5px;">खाता नंबर</label>
+                {{ form.account_number }}
+                <i class="fas fa-edit" style="position: absolute; right: 15px; top: 40px; color: #888;"></i>
+            </div>
+            
+            <div class="mb-4 position-relative notranslate" translate="no">
+                <label class="form-label" style="font-size: 14px; color: #666; margin-bottom: 5px;">IFSC कोड</label>
+                {{ form.ifsc_code }}
+                <i class="fas fa-edit" style="position: absolute; right: 15px; top: 40px; color: #888;"></i>
+            </div>
+            
+            <!-- Hidden field for bank name as it's required by form but not in design -->
+            <div style="display: none;">
+                {{ form.bank_name }}
+            </div>
+
+            <button type="submit" class="btn btn-danger w-100 py-3 notranslate" translate="no" style="background-color: #c0392b; border: none; font-size: 16px; margin-top: 20px;">सेव करें</button>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.querySelector("form");
+            if (form) {
+                window.voiceFormAssist.startVoiceFormFilling({
+                    form: form,
+                });
+            }
+        });
+    </script>
+{% endblock scripts %}

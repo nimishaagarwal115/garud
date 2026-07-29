@@ -1,0 +1,83 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% block all_title %}Change Language{% endblock all_title %}
+
+{% block styles %}
+<style>
+    .language-option {
+        padding: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .language-option:hover {
+        background-color: #f8f9fa;
+    }
+
+    .selected {
+        background-color: #fff8ec;
+    }
+
+    .check-icon {
+        color: #27ae60;
+        font-size: 1.2rem;
+    }
+
+    /* Hide actual radio button */
+    input[type="radio"] {
+        display: none;
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+<div class="container py-3">
+    <div id="language-section">
+        <a href="{% url 'user_profile' %}" class="text-decoration-none text-dark d-inline-flex align-items-center mb-3" style="font-size: 18px;">
+            <i class="fas fa-arrow-left me-2"></i> <span class="notranslate" translate="no">भाषा</span>
+        </a>
+
+        <form method="POST" id="language-form">
+            {% csrf_token %}
+            {% for language in form.fields.language.queryset %}
+                <label class="language-option w-100 mb-0 notranslate {% if request.user.language_preference.pk == language.pk %}selected{% endif %}" translate="no">
+                    <span>{{ language.name }}</span>
+                    <input type="radio" name="language" value="{{ language.pk }}" onchange="updateVisualSelection(this);"
+                        {% if request.user.language_preference.pk == language.pk %}checked{% endif %}>
+                    
+                    {% if request.user.language_preference.pk == language.pk %}
+                        <i class="fas fa-check check-icon"></i>
+                    {% endif %}
+                </label>
+            {% endfor %}
+            <div class="mt-4 px-3">
+                <button type="submit" class="btn btn-primary w-100" style="background-color: #8B4513; border-color: #8B4513; padding: 12px; font-weight: bold;">
+                    Save Language
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+{% block dashboard_script %}
+{{ block.super }}
+<script>
+    function updateVisualSelection(radioElement) {
+        // Visually update checkmark and styling
+        document.querySelectorAll('.language-option').forEach(el => {
+            el.classList.remove('selected');
+            const icon = el.querySelector('.check-icon');
+            if (icon) icon.remove();
+        });
+        
+        radioElement.closest('.language-option').classList.add('selected');
+        radioElement.insertAdjacentHTML('afterend', '<i class="fas fa-check check-icon"></i>');
+    }
+</script>
+{% endblock dashboard_script %}
+

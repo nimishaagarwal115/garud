@@ -1,0 +1,566 @@
+{% extends "base/base_dashboard.html" %}
+{% block title %}Aadhaar Verification{% endblock %} 
+{% load static %} 
+{% block content %}
+{% if not is_included %} 
+{% endif %}
+
+<!-- Top bar -->
+<div class="top-bar">
+  <a class="back-btn" style="font-size: 24px; text-decoration: none; color: #333;" onclick="window.history.back(); return false;">←</a>
+  <div class="step-info-text">
+    <div class="step-line">Step 2</div>
+    <div class="step-line sub">Aadhaar Verification</div>
+  </div>
+</div>
+
+<div class="aadhaar-verification-outer">
+  <!-- Aadhaar Icon -->
+  <div class="aadhaar-mic-section">
+    <div class="mic-circle">
+      <img src="{% static 'images/extras/voice recognition.svg' %}" alt="Aadhaar" width="120" height="120" />
+    </div>
+  </div>
+
+  <h5 class="aadhaar-select-title">Select one of the options below</h5>
+  <form method="post" enctype="multipart/form-data" class="aadhaar-form" id="aadhaar-form">
+    {% csrf_token %}
+    <div id="step1-options">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="aadhaar_option" id="scan_aadhaar" value="scan" />
+        <label class="form-check-label" for="scan_aadhaar">Scan Aadhaar Card</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="aadhaar_option" id="enter_mobile" value="mobile" checked />
+        <label class="form-check-label" for="enter_mobile">Enter Mobile Number Registered with Aadhaar</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="aadhaar_option" id="manual_entry" value="manual" />
+        <label class="form-check-label" for="manual_entry">Enter Aadhaar Number Manually</label>
+      </div>
+    </div>
+    <button type="button" class="btn btn-danger mt-4" id="continueBtn">Continue</button>
+    {% if message %}<div class="alert alert-danger mt-3">{{ message }}</div>{% endif %} 
+
+  <!-- Webcam Scan Section -->
+  <div id="step2-scan" style="display: none; text-align: center">
+    <video id="webcam" autoplay playsinline width="320" height="240" style="border: 1px solid #ccc"></video>
+    <br />
+    <button type="button" id="captureFrontBtn" class="btn btn-success">
+      Capture Front
+    </button>
+    <button type="button" id="captureBackBtn" class="btn btn-info">
+      Capture Back
+    </button>
+    <button type="submit" id="uploadBtn" class="btn btn-dark" style="display: none">
+      Submit Aadhaar
+    </button>
+    <br />
+    <button type="button" class="btn btn-outline-secondary mt-2 back-to-options-btn">
+      ← Back to Options
+    </button>
+    <div id="loader" style="margin: 10px 0; display: none">Processing...</div>
+    <canvas id="canvas" style="display: none"></canvas>
+    <div id="photoPreview" class="mt-3"></div>
+    <p id="statusMsg" style="color: green; margin-top: 10px"></p>
+    <p id="ocr-result" style="margin-top: 10px; color: green"></p>
+  </div>
+
+  <!-- Manual Aadhaar Entry -->
+  <div id="step3-manual" style="display: none; text-align: center; margin-top: 20px">
+    <input type="text" id="aadhaarManualInput" maxlength="12" placeholder="Enter 12-digit Aadhaar Number"
+      style="padding: 10px; font-size: 1.2rem; width: 80%" />
+    <button type="button" class="btn btn-outline-secondary mt-2 back-to-options-btn">
+      ← Back to Options
+    </button>
+    <button type="button" class="btn btn-primary mt-2" id="manualSubmitBtn">Submit Aadhaar Number</button>
+    <p id="manual-success-msg" style="color: green; font-weight: bold; display: none; margin-top: 10px"></p>
+  </div>
+
+  <!-- Mobile number input -->
+  <div id="step4-mobile" style="display: none; text-align: center; margin-top: 20px">
+    <input type="text" id="aadhaarMobileInput" maxlength="10" placeholder="Enter 10-digit Mobile Number"
+      style="padding: 10px; font-size: 1.2rem; width: 80%" />
+    <button type="button" class="btn btn-outline-secondary mt-2 back-to-options-btn">
+      ← Back to Options
+    </button>
+    <button type="button" class="btn btn-primary mt-2" id="mobileSubmitBtn">Submit Mobile Number</button>
+    <p id="mobile-success-msg" style="color: green; font-weight: bold; display: none; margin-top: 10px"></p>
+  </div>
+  </form>
+</div>
+
+
+<p id="statusMsg" style="color: green; margin-top: 10px"></p>
+<p id="ocr-result" style="margin-top: 10px; color: green"></p>
+{% endblock %}
+{% block dashboard_script %}
+<script>
+  // Play TTS welcome message on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.voiceFormAssist) {
+      window.voiceFormAssist.speakText("Welcome to the  Sellers verification . step 1 aadhaar verification Please select one of the options below to proceed.");
+    }
+    var speakBtn = document.getElementById('speakNowBtn');
+    var voiceResult = document.getElementById('voiceResult');
+    if (speakBtn) {
+      speakBtn.addEventListener('click', function() {
+        if (window.voiceFormAssist) {
+          voiceResult.textContent = "Listening...";
+          window.voiceFormAssist.startRecognition(function(transcript) {
+            voiceResult.textContent = transcript ? "You said: " + transcript : "No speech detected.";
+            // You can add logic here to save/send transcript if needed
+          });
+        }
+      });
+    }
+  });
+  
+  const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+  // Navigation buttons for stepper functionality
+  const goBackBtn = document.getElementById("goBackBtn");
+  const goForwardBtn = document.getElementById("goForwardBtn");
+  const topBackBtn = document.getElementById("topBackBtn");
+
+  // Top back button handler
+  if (topBackBtn) {
+    topBackBtn.addEventListener("click", function () {
+      // Check if we're in the stepper context
+      const currentUrl = window.location.href;
+      if (currentUrl.includes('onboarding_stepper')) {
+        // Navigate to previous step in stepper (phone)
+        window.location.href = currentUrl.split('?')[0] + '?step=phone';
+      } else {
+        // Go back in browser history
+        window.history.back();
+      }
+    });
+  }
+
+  // Back to Options buttons functionality
+  const backToOptionsButtons = document.querySelectorAll('.back-to-options-btn');
+  backToOptionsButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Show initial options and hide all verification sections
+      document.getElementById("step1-options").style.display = "block";
+      document.getElementById("step2-scan").style.display = "none";
+      document.getElementById("step3-manual").style.display = "none";
+      document.getElementById("step4-mobile").style.display = "none";
+      
+      // Show navigation buttons again
+      const navButtons = document.querySelector('div[style*="position: fixed; bottom: 30px"]');
+      if (navButtons) navButtons.style.display = "flex";
+      
+      // Stop camera stream if active
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      
+      // Clear any status messages
+      document.getElementById("statusMsg").textContent = "";
+      document.getElementById("ocr-result").innerHTML = "";
+      document.getElementById("manual-success-msg").style.display = "none";
+      document.getElementById("mobile-success-msg").style.display = "none";
+    });
+  });
+
+
+  // Go Forward button handler
+  if (goForwardBtn) {
+    goForwardBtn.addEventListener("click", function () {
+      // Check if we're in the stepper context
+      const currentUrl = window.location.href;
+      if (currentUrl.includes('onboarding_stepper')) {
+        // Navigate to next step in stepper (income)
+        window.location.href = currentUrl.split('?')[0] + '?step=income';
+      } else {
+        // Navigate to annual income page
+        window.location.href = '{% url "verification_progress" %}';
+      }
+    });
+  }
+
+  document.getElementById("continueBtn").addEventListener("click", () => {
+    const scanOption = document.getElementById("scan_aadhaar").checked;
+    const mobileOption = document.getElementById("enter_mobile").checked;
+    const manualOption = document.getElementById("manual_entry").checked;
+
+    // Hide all
+    document.getElementById("step1-options").style.display = "none";
+    document.getElementById("step2-scan").style.display = "none";
+    document.getElementById("step3-manual").style.display = "none";
+    document.getElementById("step4-mobile").style.display = "none";
+     
+    // Hide navigation buttons during verification process
+    const navButtons = document.querySelector('div[style*="position: fixed; bottom: 30px"]');
+    if (navButtons) navButtons.style.display = "none";
+
+    if (scanOption) {
+      document.getElementById("step2-scan").style.display = "block";
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true }).then((s) => {
+          stream = s;
+          video.srcObject = stream;
+        });
+      }
+    } else if (manualOption) {
+      document.getElementById("step3-manual").style.display = "block";
+    } else if (mobileOption) {
+      document.getElementById("step4-mobile").style.display = "block";
+    }
+  });
+
+  let frontImageData = null;
+  let backImageData = null;
+  let stream = null;
+
+  const video = document.getElementById('webcam');
+  const canvas = document.getElementById('canvas');
+  const captureFrontBtn = document.getElementById('captureFrontBtn');
+  const captureBackBtn = document.getElementById('captureBackBtn');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const photoPreview = document.getElementById('photoPreview');
+  const statusMsg = document.getElementById('statusMsg');
+  const ocrResult = document.getElementById('ocr-result');
+
+  captureFrontBtn.addEventListener('click', () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    frontImageData = canvas.toDataURL('image/png');
+    photoPreview.innerHTML = `<b>Front Image:</b><br><img src="${frontImageData}" width="200"/><br>`;
+    statusMsg.textContent = '✅ Front image captured. Now capture back image.';
+    statusMsg.style.color = 'green';
+    if (backImageData) uploadBtn.style.display = '';
+  });
+
+  captureBackBtn.addEventListener('click', () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    backImageData = canvas.toDataURL('image/png');
+    let html = `<b>Front Image:</b><br><img src="${frontImageData}" width="200"/><br>`;
+    html += `<b>Back Image:</b><br><img src="${backImageData}" width="200"/><br>`;
+    photoPreview.innerHTML = html;
+    statusMsg.textContent = '✅ Back image captured. Now submit Aadhaar.';
+    statusMsg.style.color = 'green';
+    if (frontImageData) uploadBtn.style.display = '';
+  });
+
+  document.getElementById('aadhaar-form').addEventListener('submit', (e) => {
+    // Only intercept if we are in scan mode
+    if (document.getElementById("step2-scan").style.display !== "none") {
+      e.preventDefault();
+      console.log("[Aadhaar Debug] Submit button clicked");
+      console.log("[Aadhaar Debug] Form submit triggered");
+
+      if (!frontImageData || !backImageData) {
+        statusMsg.textContent = '❌ Please capture both front and back images.';
+        statusMsg.style.color = 'red';
+        console.log("[Aadhaar Debug] File validation failed: missing image(s)");
+        return;
+      }
+      console.log("[Aadhaar Debug] Validation passed");
+      
+      statusMsg.textContent = 'Processing...';
+      statusMsg.style.color = 'orange';
+
+      // Convert base64 to Blob
+      function dataURLtoBlob(dataurl) {
+          var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+              bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+          while(n--){
+              u8arr[n] = bstr.charCodeAt(n);
+          }
+          return new Blob([u8arr], {type:mime});
+      }
+
+      const formData = new FormData(document.getElementById('aadhaar-form'));
+      formData.append('option', 'scan');
+      formData.append('front_image', dataURLtoBlob(frontImageData), 'front.png');
+      formData.append('back_image', dataURLtoBlob(backImageData), 'back.png');
+
+      console.log("[Aadhaar Debug] FormData created");
+      console.log("[Aadhaar Debug] Aadhaar file appended");
+      console.log("[Aadhaar Debug] Request being sent");
+
+      fetch("/aadhaar/", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrfToken,
+        },
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const info = data.data;
+          // Show extracted details in a formatted card
+          ocrResult.innerHTML = `
+            <div class="aadhaar-details-card" style="background:#f9f9f9;padding:16px;border-radius:8px;margin-top:16px;max-width:400px;margin-left:auto;margin-right:auto;box-shadow:0 2px 8px rgba(0,0,0,0.07);">
+              <h5 style="color:#b44a1d;margin-bottom:12px;">Extracted Aadhaar Details</h5>
+              <div><b>Name:</b> ${info.name || '<span style=\"color:red\">Not found</span>'}</div>
+              <div><b>Date of Birth:</b> ${info.dob || '<span style=\"color:red\">Not found</span>'}</div>
+              <div><b>Gender:</b> ${info.gender || '<span style=\"color:red\">Not found</span>'}</div>
+              <div><b>Aadhaar Number:</b> ${info.aadhaar_number || '<span style=\"color:red\">Not found</span>'}</div>
+              <div><b>Address:</b> ${info.address || '<span style=\"color:red\">Not found</span>'}</div>
+            </div>
+          `;
+          statusMsg.textContent = '✅ Aadhaar details extracted and saved!';
+          statusMsg.style.color = 'green';
+          // Redirect to next step after short delay
+          setTimeout(() => {
+            window.location.href = '/verification-progress/';
+          }, 10000);
+        } else {
+          statusMsg.textContent = data.error || "Something went wrong.";
+          statusMsg.style.color = 'red';
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        statusMsg.textContent = "Request failed: " + error.message;
+        statusMsg.style.color = 'red';
+      });
+    }
+  });
+
+  // Manual submit
+  document.getElementById("manualSubmitBtn").addEventListener("click", () => {
+    const input = document.getElementById("aadhaarManualInput").value.trim();
+    const msg = document.getElementById("manual-success-msg");
+    if (/^\d{12}$/.test(input)) {
+      msg.style.color = "green";
+      msg.innerText = "✅ Aadhaar Number Submitted Successfully";
+      msg.style.display = "block";
+      fetch("/aadhaar/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({
+          option: "manual",
+          aadhaar_number: input,
+        }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            msg.style.color = "green";
+            msg.innerText = "✅ Aadhaar Number Submitted Successfully";
+            msg.style.display = "block";
+            setTimeout(() => {
+              window.location.href = '/verification-progress/';
+            }, 1500);
+          } else {
+            msg.innerText = data.error || "Something went wrong.";
+            msg.style.color = 'red';
+          }
+        });
+    } else {
+      msg.style.color = "red";
+      msg.innerText = "❌ Please enter a valid 12-digit Aadhaar number.";
+      msg.style.display = "block";
+    }
+  });
+
+  // Mobile number flow
+  document.getElementById("mobileSubmitBtn").addEventListener("click", () => {
+    const input = document.getElementById("aadhaarMobileInput").value.trim();
+    const msg = document.getElementById("mobile-success-msg");
+    if (/^\d{10}$/.test(input)) {
+      msg.style.color = "green";
+      msg.innerText = "✅ Mobile Number Submitted";
+      msg.style.display = "block";
+      fetch("/aadhaar/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({
+          option: "mobile",
+          mobile: input,
+        }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            window.location.href = "/verification-progress/";
+          }
+        });
+    } 
+    else {
+      msg.style.color = "red";
+      msg.innerText = "❌ Please enter a valid 10-digit mobile number.";
+      msg.style.display = "block";
+    }
+  });
+</script>
+{% endblock %}
+
+
+{% block styles %}
+<style>
+  .aadhaar-verification-outer {
+    background: #fff;
+    min-height: 100vh;
+    padding: 32px 16px;
+    display: flex;
+    margin-top: 40px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .top-bar {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .back-btn {
+    font-size: 2rem;
+    font-weight: bold;
+    text-decoration: none;
+    color: #b44a1d;
+    padding: 8px 16px;
+  }
+
+  .step-info-text {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #222;
+    text-align: right;
+    padding: 8px 16px;
+    margin-left: auto;
+  }
+
+  .step-line:first-child {
+    margin-top: 2px;
+  }
+
+  .step-line:last-child {
+    margin-top: 2px;
+  }
+
+  .step-line {
+    line-height: 1.3;
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
+  .step-line.sub {
+    font-size: 0.9rem;
+    color: #777;
+    font-weight: 400;
+  }
+
+  .aadhaar-mic-section {
+    display: flex;
+    justify-content: center;
+    margin: 60px 0 24px 0;
+    margin-bottom: 24px;
+  }
+
+  .mic-circle {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(180, 74, 29, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px auto;
+  }
+
+  .mic-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .aadhaar-select-title {
+    text-align: center;
+    margin: 24px 0 18px 0;
+    font-size: 1.2rem;
+    color: #222;
+    font-weight: 500;
+  }
+
+  .aadhaar-form {
+    max-width: 480px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 18px 18px 18px;
+  }
+
+  .form-check {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+  }
+
+  .form-check-input[type="radio"] {
+    width: 28px;
+    height: 28px;
+    accent-color: #b44a1d;
+    margin-right: 16px;
+  }
+
+  .form-check-label {
+    font-size: 1.1rem;
+    color: #222;
+  }
+
+  .btn-danger {
+    width: 100%;
+    background: #b44a1d;
+    color: #fff;
+    border: none;
+    padding: 18px 0;
+    border-radius: 6px;
+    font-size: 1.3rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-danger:hover {
+    background: #a03e17;
+  }
+
+  @media (max-width: 600px) {
+    .aadhaar-form {
+      padding: 12px 8px 10px 8px;
+    }
+
+    .mic-circle {
+      width: 120px;
+      height: 120px;
+    }
+
+    .top-bar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .step-info-text {
+      text-align: left;
+      padding-left: 16px;
+    }
+  }
+</style>
+
+{% if not is_included %} 
+{% endif %} 
+{% endblock %}
+

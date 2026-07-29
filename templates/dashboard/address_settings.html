@@ -1,0 +1,152 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}Address Settings{% endblock all_title %}
+
+{% block styles %}
+    <style>
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+            border: none;
+        }
+        .edit-icon {
+            cursor: pointer;
+            color: #C2461F;
+        }
+        .logout-btn {
+            background-color: #C2461F;
+            color: white;
+            border: none;
+        }
+    </style>
+{% endblock styles %}
+
+{% block content %}
+    <div class="container py-3">
+
+        <a href="{% url 'user_profile' %}" class="text-decoration-none text-dark d-inline-flex align-items-center mb-3" style="font-size: 18px;">
+            <i class="fas fa-arrow-left me-2"></i> <span class="notranslate" translate="no">पता सेटिंग</span>
+        </a>
+
+        <h1 class="page-title notranslate" translate="no" style="margin: 0 0 20px 0; font-size: 24px; font-weight: 500; color: #333;">पता</h1>
+
+        <!-- Success Message -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row mb-3 notranslate" translate="no">
+                <div class="col-6 position-relative">
+                    <label class="form-label" style="font-size: 14px; color: #666; margin-bottom: 5px;">पिन कोड</label>
+                    {{ form.pincode }}
+                    <i class="fas fa-edit" style="position: absolute; right: 25px; top: 40px; color: #888;"></i>
+                    <small id="pincode-status" class="text-danger mt-1 d-block" style="font-size: 11px; min-height: 16px;"></small>
+                </div>
+                <div class="col-6 position-relative">
+                    <label class="form-label" style="font-size: 14px; color: #666; margin-bottom: 5px;">शहर</label>
+                    {{ form.city }}
+                    <i class="fas fa-chevron-down" style="position: absolute; right: 25px; top: 40px; color: #888; pointer-events: none;"></i>
+                </div>
+            </div>
+
+            <div class="row mb-3 notranslate" translate="no">
+                <div class="col-6 position-relative">
+                    <label class="form-label" style="font-size: 14px; color: #666; margin-bottom: 5px;">जिला</label>
+                    {{ form.zilla }}
+                    <i class="fas fa-chevron-down" style="position: absolute; right: 25px; top: 40px; color: #888; pointer-events: none;"></i>
+                </div>
+                <div class="col-6 position-relative">
+                    <label class="form-label" style="font-size: 14px; color: #666; margin-bottom: 5px;">राज्य</label>
+                    {{ form.state }}
+                    <i class="fas fa-chevron-down" style="position: absolute; right: 25px; top: 40px; color: #888; pointer-events: none;"></i>
+                </div>
+            </div>
+
+            <div class="mb-4 position-relative notranslate" translate="no">
+                <label class="form-label" style="font-size: 14px; color: #666; margin-bottom: 5px;">बिल्डिंग नंबर, गली</label>
+                {{ form.full_address }}
+                <i class="fas fa-edit" style="position: absolute; right: 15px; top: 40px; color: #888;"></i>
+            </div>
+            
+            <!-- Hidden fields for other form data to prevent validation errors -->
+            <div style="display: none;">
+                {{ form.panchayat }}
+                {{ form.village }}
+            </div>
+
+            <button type="submit" class="btn btn-danger w-100 py-3 notranslate" translate="no" style="background-color: #c0392b; border: none; font-size: 16px; margin-top: 20px;">सेव करें</button>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.querySelector("form");
+            if (form) {
+                window.voiceFormAssist.startVoiceFormFilling({
+                    form: form,
+                });
+            }
+
+            // PIN CODE AUTO DETECTION
+            const pincodeInput = document.getElementById("id_pincode");
+            const pincodeStatus = document.getElementById("pincode-status");
+            const stateInput = document.getElementById("id_state");
+            const districtInput = document.getElementById("id_zilla");
+            const cityInput = document.getElementById("id_city");
+
+            async function fetchPinDetails(pin) {
+                if (!pincodeStatus) return;
+                pincodeStatus.className = "text-primary mt-1 d-block";
+                pincodeStatus.textContent = "Loading...";
+                try {
+                    const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+                    const data = await res.json();
+                    
+                    if (data && data[0] && data[0].Status === "Success") {
+                        const postOffice = data[0].PostOffice[0];
+                        if (stateInput) stateInput.value = postOffice.State || "";
+                        if (districtInput) districtInput.value = postOffice.District || "";
+                        if (cityInput) cityInput.value = postOffice.Block || postOffice.District || "";
+                        
+                        pincodeStatus.className = "text-success mt-1 d-block";
+                        pincodeStatus.textContent = "Verified";
+                    } else {
+                        pincodeStatus.className = "text-danger mt-1 d-block";
+                        pincodeStatus.textContent = "Invalid PIN Code";
+                    }
+                } catch (err) {
+                    pincodeStatus.className = "text-danger mt-1 d-block";
+                    pincodeStatus.textContent = "Network error, please enter manually";
+                }
+            }
+
+            if (pincodeInput) {
+                pincodeInput.addEventListener("input", (e) => {
+                    // only allow numbers
+                    e.target.value = e.target.value.replace(/\D/g, "");
+                    
+                    if (e.target.value.length === 6) {
+                        fetchPinDetails(e.target.value);
+                    } else {
+                        if (pincodeStatus) pincodeStatus.textContent = "";
+                    }
+                });
+
+                pincodeInput.addEventListener("blur", (e) => {
+                    if (e.target.value.length === 6 && pincodeStatus && pincodeStatus.textContent === "") {
+                        fetchPinDetails(e.target.value);
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock scripts %}

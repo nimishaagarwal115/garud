@@ -1,0 +1,196 @@
+{% extends "base/base_dashboard.html" %}
+{% block title %}Phone Confirmation{% endblock %}
+{% load static %} 
+{% block content %} 
+{% if not is_included %} 
+{% endif %}
+
+
+<!-- Top bar -->
+<div class="top-bar" style="
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+  ">
+  <a class="back-btn" style="font-size: 24px; text-decoration: none; color: #333"
+    onclick="window.history.back(); return false;">←</a>
+  <div class="step-info-text" style="text-align: right">
+    <div class="step-line" style="font-size: 18px; font-weight: bold; color: #333">
+      Step 1
+    </div>
+    <div class="step-line sub" style="font-size: 14px; color: #666">
+      Phone Verification
+    </div>
+  </div>
+</div>
+
+<div class="aadhaar-verification-outer" style="
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    text-align: center;
+    padding: 20px;
+  ">
+  <div class="aadhaar-mic-section" style="margin-bottom: 30px">
+    <div class="mic-circle" style="display: flex; justify-content: center; align-items: center">
+      <img src="{% static 'images/extras/voice recognition.svg' %}" alt="Phone Verification" width="120" height="120" />
+    </div>
+  </div>
+
+  <h5 class="aadhaar-select-title" style="font-size: 20px; margin-bottom: 20px; color: #333">
+    Phone Number Confirmation
+  </h5>
+  <p style="color: #666; margin-bottom: 30px; font-size: 16px">
+    Before we proceed with your KYC verification, please confirm your phone
+    number.
+  </p>
+
+  <!-- Current Phone Display -->
+  <div style="
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      max-width: 400px;
+      width: 100%;
+    ">
+    <div style="
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+      ">
+      {{ current_phone }}
+    </div>
+    <div style="color: #666; font-size: 0.95rem">Current Phone Number</div>
+  </div>
+
+  <form method="post" class="aadhaar-form" id="phoneConfirmationForm" style="max-width: 400px; width: 100%">
+    {% csrf_token %} {% if form.errors %}
+    <div class="alert alert-danger" style="
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      ">
+      {% for field, errors in form.errors.items %} {% for error in errors %}
+      <div>{{ error }}</div>
+      {% endfor %} {% endfor %}
+    </div>
+    {% endif %}
+
+    <div id="step1-options" style="text-align: left; margin-bottom: 30px">
+      <!-- Option: Continue with current number -->
+      <div class="form-check" style="
+          margin-bottom: 20px;
+          display: flex;
+          align-items: flex-start;
+          padding: 15px;
+          border: 2px solid #e9ecef;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        " data-value="continue">
+        <input class="form-check-input" type="radio" name="action" id="action_continue" value="continue"
+          style="margin-right: 12px; margin-top: 2px" />
+        <div style="flex: 1">
+          <label class="form-check-label" for="action_continue" style="
+              font-size: 16px;
+              cursor: pointer;
+              font-weight: 600;
+              color: #2c3e50;
+              display: block;
+              margin-bottom: 5px;
+            ">1: Continue with Current Number</label>
+          <div style="color: #666; font-size: 0.9rem">
+            Proceed with {{ current_phone }} for KYC verification
+          </div>
+        </div>
+      </div>
+
+      <!-- Option: Change number -->
+      <div class="form-check" style="
+          margin-bottom: 20px;
+          display: flex;
+          align-items: flex-start;
+          padding: 15px;
+          border: 2px solid #e9ecef;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        " data-value="change">
+        <input class="form-check-input" type="radio" name="action" id="action_change" value="change"
+          style="margin-right: 12px; margin-top: 2px" />
+        <div style="flex: 1">
+          <label class="form-check-label" for="action_change" style="
+              font-size: 16px;
+              cursor: pointer;
+              font-weight: 600;
+              color: #2c3e50;
+              display: block;
+              margin-bottom: 5px;
+            ">2: Change Phone Number</label>
+          <div style="color: #666; font-size: 0.9rem">
+            Enter a different phone number for KYC verification
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New phone number input -->
+    <div id="newPhoneGroup" style="
+        display: none;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 2px solid #e9ecef;
+      ">
+      <label for="new_phone_number" style="
+          display: block;
+          margin-bottom: 10px;
+          font-weight: 600;
+          color: #2c3e50;
+        ">New Phone Number:</label>
+      <input type="text" name="new_phone_number" id="new_phone_number" placeholder="Enter new phone number"
+        maxlength="14" style="
+          width: 100%;
+          padding: 15px;
+          border: 2px solid #e9ecef;
+          border-radius: 12px;
+          font-size: 1rem;
+          background: white;
+        " />
+      {% if form.new_phone_number.errors %} {% for error in form.new_phone_number.errors %}
+      <div style="color: #dc3545; font-size: 0.9rem; margin-top: 5px">
+        {{ error }}
+      </div>
+      {% endfor %} {% endif %}
+    </div>
+    <!-- Continue button -->
+    <div style="
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+      ">
+      <button type="button" class="btn btn-danger" onload="console.log('Gauravvvvvvvvvvvv')" id="continueBtn" style="
+          padding: 12px 30px;
+          font-size: 16px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        ">
+        Continue to KYC
+      </button>
+    </div>
+  </div>
+</form>
+
+
+{% if not is_included %} {% endif %} {% endblock %}

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Invoice {{ order.pg_order_id }}</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left: 50pt; width: 512pt; top: 772pt; height: 20pt;
+            }
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 11pt;
+            color: #333333;
+            line-height: 1.5;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .header-table {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .header-table td {
+            vertical-align: top;
+        }
+        .logo {
+            font-size: 28pt;
+            font-weight: bold;
+            color: #b94a2c;
+        }
+        .invoice-title {
+            font-size: 24pt;
+            color: #555555;
+            text-align: right;
+        }
+        .info-table {
+            width: 100%;
+            margin-bottom: 25px;
+        }
+        .info-table td {
+            vertical-align: top;
+            width: 50%;
+        }
+        .section-title {
+            font-size: 14pt;
+            border-bottom: 1px solid #dddddd;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #b94a2c;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .items-table th {
+            background-color: #f2f2f2;
+            border-bottom: 2px solid #dddddd;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .items-table td {
+            border-bottom: 1px solid #eeeeee;
+            padding: 8px;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .summary-table {
+            width: 100%;
+        }
+        .summary-table td {
+            padding: 5px;
+        }
+        .summary-wrapper {
+            width: 40%;
+            margin-left: auto;
+        }
+        .grand-total {
+            font-weight: bold;
+            font-size: 14pt;
+            color: #b94a2c;
+            border-top: 2px solid #333;
+            padding-top: 10px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 9pt;
+            color: #777777;
+            border-top: 1px solid #dddddd;
+            padding-top: 10px;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td>
+                <div class="logo">GARUD</div>
+                <div style="font-size: 10pt; color: #777;">Quality Products, Delivered.</div>
+            </td>
+            <td class="text-right">
+                <div class="invoice-title">INVOICE</div>
+                <div><strong>Invoice Number:</strong> INV-{{ order.pg_order_id }}</div>
+                <div><strong>Order Number:</strong> {{ order.pg_order_id }}</div>
+                <div><strong>Invoice Date:</strong> {% now "d-M-Y" %}</div>
+                <div><strong>Order Date:</strong> {{ order.created_at|date:"d-M-Y" }}</div>
+                <div><strong>Payment Status:</strong> 
+                    {% if order.transaction and order.transaction.payment_status %}Paid{% else %}Unpaid/COD{% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="info-table">
+        <tr>
+            <td style="padding-right: 20px;">
+                <div class="section-title">Seller Information</div>
+                <strong>
+                    {% if seller_gst and seller_gst.business_name %}
+                        {{ seller_gst.business_name }}
+                    {% elif seller.first_name %}
+                        {{ seller.first_name }} {{ seller.last_name }}
+                    {% else %}
+                        {{ seller.username }}
+                    {% endif %}
+                </strong><br>
+                {% if seller_gst and seller_gst.business_address %}
+                    {{ seller_gst.business_address }}<br>
+                {% endif %}
+                {% if seller_gst and seller_gst.gst_number %}
+                    GSTIN: {{ seller_gst.gst_number }}<br>
+                {% endif %}
+                Phone: {{ seller.mobile }}<br>
+                {% if seller.email %}Email: {{ seller.email }}{% endif %}
+            </td>
+            <td>
+                <div class="section-title">Customer Information</div>
+                <strong>{{ customer_name }}</strong><br>
+                {% if address %}
+                    {{ address.flat_house_building }}, {{ address.area_street_village }}<br>
+                    {{ address.town_city }}, {{ address.state }}, {{ address.pincode }}<br>
+                    India<br>
+                {% endif %}
+                Phone: {{ request.user.mobile }}<br>
+                {% if request.user.email %}Email: {{ request.user.email }}{% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Product Details</div>
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 45%;">Product Name</th>
+                <th class="text-right" style="width: 15%;">Unit Price</th>
+                <th class="text-right" style="width: 10%;">Qty</th>
+                <th class="text-right" style="width: 15%;">Discount</th>
+                <th class="text-right" style="width: 15%;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td class="text-right">Rs. {% if item.product.price %}{{ item.product.price|floatformat:2 }}{% else %}{{ item.price|floatformat:2 }}{% endif %}</td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td class="text-right">Rs. {{ item.discount_amount|floatformat:2 }}</td>
+                <td class="text-right">Rs. {{ item.price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table style="width: 100%;">
+        <tr>
+            <td style="width: 50%; vertical-align: top;">
+                <div class="section-title" style="margin-top: 0;">Payment Information</div>
+                <div><strong>Payment Method:</strong> 
+                    {% if order.transaction and order.transaction.payment_status %}Online Payment{% else %}Cash on Delivery{% endif %}
+                </div>
+                {% if order.transaction and order.transaction.payment_status %}
+                <div><strong>Transaction ID:</strong> {{ order.transaction.id }}</div>
+                <div><strong>Payment Date:</strong> {{ order.transaction.created_at|date:"d-M-Y H:i" }}</div>
+                {% endif %}
+            </td>
+            <td style="width: 50%; vertical-align: top;">
+                <table class="summary-table">
+                    <tr>
+                        <td class="text-right">Items Total:</td>
+                        <td class="text-right">Rs. {{ subtotal|add:discount_total|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">Discount:</td>
+                        <td class="text-right">- Rs. {{ discount_total|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">Delivery Charges:</td>
+                        <td class="text-right">Rs. {{ shipping|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">Tax (GST):</td>
+                        <td class="text-right">Rs. {{ tax|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right grand-total">Grand Total:</td>
+                        <td class="text-right grand-total">Rs. {{ total|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right" style="padding-top: 10px;">Amount Paid:</td>
+                        <td class="text-right" style="padding-top: 10px;">Rs. {% if order.transaction and order.transaction.payment_status %}{{ total|floatformat:2 }}{% else %}0.00{% endif %}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div id="footer_content" class="footer">
+        <strong>Thank you for shopping with Garud.</strong><br>
+        Support: support@garud.com | Phone: +91 1800-123-4567<br>
+        This is a computer-generated document. No signature is required.
+    </div>
+</body>
+</html>

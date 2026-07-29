@@ -1,0 +1,1105 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}Edit {{ product.name }} - Product Edit{% endblock %}
+
+{% block css_files %}
+<link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/footer.css' %}">
+<style>
+/* Main container */
+.edit-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Header with project theme */
+.edit-header {
+    background: linear-gradient(135deg, #B71C1C 0%, #dc3545 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(183, 28, 28, 0.3);
+}
+
+.edit-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+    z-index: 1;
+}
+
+.edit-header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 2;
+}
+
+.edit-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 2;
+}
+
+/* Form styling */
+.edit-form {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.form-control:focus {
+    border-color: #B71C1C;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(183, 28, 28, 0.15);
+    background: white;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.ai-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.media-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 25px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    border: 2px dashed #dee2e6;
+}
+
+.media-item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.media-item:hover {
+    transform: translateY(-5px);
+}
+
+.media-item img, .media-item video {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.media-label {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(183, 28, 28, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn {
+    padding: 15px 25px;
+    border: none;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #B71C1C 0%, #dc3545 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #a01818 0%, #c82333 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(183, 28, 28, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #343a40 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.form-actions {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+    justify-content: space-between;
+}
+
+.help-text {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.char-counter {
+    font-size: 0.8rem;
+    color: #6c757d;
+    float: right;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.price-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Media Management Styles */
+.media-management-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.media-management-section h3 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+.media-subsection {
+    margin-bottom: 30px;
+}
+
+.media-subsection h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.media-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    cursor: move;
+    border: 2px solid #e9ecef;
+}
+
+.media-item:hover {
+    transform: translateY(-5px);
+    border-color: #B71C1C;
+}
+
+.media-item.sortable-ghost {
+    opacity: 0.4;
+}
+
+.media-item.sortable-drag {
+    opacity: 0.8;
+    transform: rotate(5deg);
+}
+
+.drag-handle {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(183, 28, 28, 0.9);
+    color: white;
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    z-index: 10;
+    cursor: move;
+}
+
+.drag-handle:hover {
+    background: rgba(183, 28, 28, 1);
+}
+
+.media-item img,
+.media-item video {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+}
+
+.media-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.media-item:hover .media-overlay {
+    opacity: 1;
+}
+
+.primary-badge {
+    background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%);
+    color: #212529;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+.btn-make-primary,
+.btn-remove {
+    background: none;
+    border: 2px solid white;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-make-primary:hover {
+    background: #ffc107;
+    color: #212529;
+    border-color: #ffc107;
+}
+
+.btn-remove:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+}
+
+.media-info {
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.alt-text-input,
+.title-input {
+    width: 100%;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease;
+}
+
+.alt-text-input:focus,
+.title-input:focus {
+    border-color: #B71C1C;
+    outline: none;
+}
+
+.add-media-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 160px;
+    border: 3px dashed #dee2e6;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.add-media-item:hover {
+    border-color: #B71C1C;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+}
+
+.add-media-item button {
+    background: none;
+    border: none;
+    color: #B71C1C;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.add-media-item i {
+    font-size: 2rem;
+}
+
+.upload-progress {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+    z-index: 1000;
+    display: none;
+    border: 2px solid #B71C1C;
+}
+
+.progress-bar {
+    width: 250px;
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #B71C1C 0%, #dc3545 100%);
+    transition: width 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .edit-container {
+        padding: 15px;
+    }
+    
+    .price-group {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        justify-content: center;
+    }
+    
+    .media-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+    }
+    
+    .edit-header h1 {
+        font-size: 1.8rem;
+    }
+}
+</style>
+
+<!-- SortableJS for drag and drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+{% endblock %}
+
+{% block All_Content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" style="margin: 20px auto; max-width: 900px; padding: 0 20px;">
+    <ol class="breadcrumb" style="background: none; padding: 0; margin: 0;">
+        <li class="breadcrumb-item"><a href="{% url 'product_list' %}" style="color: #B71C1C; font-weight: 600;">Products</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'product_detail' product.pk %}" style="color: #B71C1C; font-weight: 600;">{{ product.name|truncatechars:20 }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page" style="color: #6c757d; font-weight: 600;">Edit</li>
+    </ol>
+</nav>
+
+<div class="edit-container">
+    <!-- Header -->
+    <div class="edit-header">
+        <h1><i class="fas fa-edit"></i> Edit Product</h1>
+        <p>Make changes to your product listing</p>
+    </div>
+
+    <!-- Media Management Section -->
+    <div class="media-management-section">
+        <h3><i class="fas fa-images"></i> Manage Photos & Videos</h3>
+        
+        <!-- Image Management -->
+        <div class="media-subsection">
+            <h4>Product Images</h4>
+            <div class="media-grid" id="images-grid">
+                {% for image in images %}
+                <div class="media-item" data-id="{{ image.id }}" data-type="image">
+                    <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
+                    <img src="{{ image.image.url }}" alt="{{ image.alt_text }}">
+                    <div class="media-overlay">
+                        {% if image.is_primary %}
+                            <span class="primary-badge">Primary</span>
+                        {% else %}
+                            <button type="button" class="btn-make-primary" onclick="makePrimary({{ image.id }})">
+                                <i class="fas fa-star"></i> Make Primary
+                            </button>
+                        {% endif %}
+                        <button type="button" class="btn-remove" onclick="removeMedia('image', {{ image.id }})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="media-info">
+                        <input type="text" class="alt-text-input" value="{{ image.alt_text }}" 
+                               placeholder="Alt text" onchange="updateAltText({{ image.id }}, this.value)">
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Add New Image Button -->
+                <div class="add-media-item">
+                    <input type="file" id="new-image-input" accept="image/*" multiple style="display: none;" onchange="addImages(this)">
+                    <button type="button" onclick="document.getElementById('new-image-input').click()">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Images</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Management -->
+        <div class="media-subsection">
+            <h4>Product Videos</h4>
+            <div class="media-grid" id="videos-grid">
+                {% for video in videos %}
+                <div class="media-item" data-id="{{ video.id }}" data-type="video">
+                    <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
+                    <video src="{{ video.video.url }}" controls></video>
+                    <div class="media-overlay">
+                        <button type="button" class="btn-remove" onclick="removeMedia('video', {{ video.id }})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="media-info">
+                        <input type="text" class="title-input" value="{{ video.title }}" 
+                               placeholder="Video title" onchange="updateVideoTitle({{ video.id }}, this.value)">
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Add New Video Button -->
+                <div class="add-media-item">
+                    <input type="file" id="new-video-input" accept="video/*" multiple style="display: none;" onchange="addVideos(this)">
+                    <button type="button" onclick="document.getElementById('new-video-input').click()">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Videos</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Preview -->
+    {% if images or videos %}
+    <div class="media-preview">
+        {% for image in images %}
+        <div class="media-item">
+            <img src="{{ image.image.url }}" alt="{{ image.alt_text }}">
+            <div class="media-label">IMG {{ forloop.counter }}</div>
+        </div>
+        {% endfor %}
+        
+        {% for video in videos %}
+        <div class="media-item">
+            <video>
+                <source src="{{ video.video.url }}" type="video/mp4">
+            </video>
+            <div class="media-label">VID {{ forloop.counter }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Edit Form -->
+    <form method="post" class="edit-form">
+        {% csrf_token %}
+        
+        <!-- Product Name -->
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}" class="form-label">
+                Product Name
+                {% if ai_indicators.name %}<span class="ai-badge"><i class="fas fa-robot"></i> AI Generated</span>{% endif %}
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <div class="invalid-feedback">{{ form.name.errors.0 }}</div>
+            {% endif %}
+            <div class="help-text">Choose a clear, descriptive name for your product</div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}" class="form-label">
+                Description
+                {% if ai_indicators.description %}<span class="ai-badge"><i class="fas fa-robot"></i> AI Generated</span>{% endif %}
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+                <div class="invalid-feedback">{{ form.description.errors.0 }}</div>
+            {% endif %}
+            <div class="help-text">Provide detailed information about your product's features and benefits</div>
+            <div class="char-counter" id="desc-counter"></div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+            <label for="{{ form.category.id_for_label }}" class="form-label">
+                Category
+                {% if ai_indicators.category %}<span class="ai-badge"><i class="fas fa-robot"></i> AI Generated</span>{% endif %}
+            </label>
+            {{ form.category }}
+            {% if form.category.errors %}
+                <div class="invalid-feedback">{{ form.category.errors.0 }}</div>
+            {% endif %}
+            <div class="help-text">Select the most appropriate category for your product</div>
+        </div>
+
+        <!-- Price & Offer Price -->
+        <div class="price-group">
+            <div class="form-group">
+                <label for="{{ form.price.id_for_label }}" class="form-label">
+                    Price (₹)
+                    {% if ai_indicators.price %}<span class="ai-badge"><i class="fas fa-robot"></i> AI Generated</span>{% endif %}
+                </label>
+                {{ form.price }}
+                {% if form.price.errors %}
+                    <div class="invalid-feedback">{{ form.price.errors.0 }}</div>
+                {% endif %}
+                <div class="help-text">Set your product's regular price</div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.offer_price.id_for_label }}" class="form-label">
+                    Offer Price (₹) <small>(Optional)</small>
+                    {% if ai_indicators.price %}<span class="ai-badge"><i class="fas fa-robot"></i> AI Generated</span>{% endif %}
+                </label>
+                {{ form.offer_price }}
+                {% if form.offer_price.errors %}
+                    <div class="invalid-feedback">{{ form.offer_price.errors.0 }}</div>
+                {% endif %}
+                <div class="help-text">Set a discounted price to attract buyers</div>
+            </div>
+        </div>
+
+        <!-- Stock Quantity -->
+        <div class="form-group">
+            <label for="{{ form.stock_quantity.id_for_label }}" class="form-label">
+                Stock Quantity
+            </label>
+            {{ form.stock_quantity }}
+            {% if form.stock_quantity.errors %}
+                <div class="invalid-feedback">{{ form.stock_quantity.errors.0 }}</div>
+            {% endif %}
+            <div class="help-text">How many units do you have available?</div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <div>
+                <a href="{% url 'product_detail' product.pk %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block dashboard_script %}
+<script>
+// Character counter for description
+const descTextarea = document.querySelector('#id_description');
+const charCounter = document.getElementById('desc-counter');
+
+if (descTextarea && charCounter) {
+    function updateCharCount() {
+        const count = descTextarea.value.length;
+        charCounter.textContent = `${count} characters`;
+        
+        if (count > 500) {
+            charCounter.style.color = '#dc3545';
+        } else if (count > 400) {
+            charCounter.style.color = '#ffc107';
+        } else {
+            charCounter.style.color = '#999';
+        }
+    }
+    
+    descTextarea.addEventListener('input', updateCharCount);
+    updateCharCount(); // Initial count
+}
+
+// Auto-save draft functionality (optional)
+let saveTimeout;
+function autoSave() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        console.log('Auto-saving draft...');
+        // You can implement auto-save to localStorage here
+    }, 2000);
+}
+
+// Add auto-save to all inputs
+document.querySelectorAll('input, textarea, select').forEach(element => {
+    element.addEventListener('input', autoSave);
+});
+
+// Media Management Functions
+function showProgress(text) {
+    const progress = document.querySelector('.upload-progress') || createProgressElement();
+    progress.style.display = 'block';
+    progress.querySelector('.progress-text').textContent = text;
+    progress.querySelector('.progress-fill').style.width = '0%';
+}
+
+function updateProgress(percent) {
+    const progressFill = document.querySelector('.progress-fill');
+    if (progressFill) {
+        progressFill.style.width = percent + '%';
+    }
+}
+
+function hideProgress() {
+    const progress = document.querySelector('.upload-progress');
+    if (progress) {
+        progress.style.display = 'none';
+    }
+}
+
+function createProgressElement() {
+    const progress = document.createElement('div');
+    progress.className = 'upload-progress';
+    progress.innerHTML = `
+        <div class="progress-text">Uploading...</div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+    `;
+    document.body.appendChild(progress);
+    return progress;
+}
+
+function addImages(input) {
+    const files = Array.from(input.files);
+    if (files.length === 0) return;
+    
+    showProgress('Uploading images...');
+    
+    files.forEach((file, index) => {
+        if (!file.type.startsWith('image/')) {
+            alert(`File ${file.name} is not an image.`);
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageData = e.target.result;
+            
+            fetch(`/product/{{ product.pk }}/media/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'add_image',
+                    'image': imageData,
+                    'alt_text': file.name.replace(/\.[^/.]+$/, "")
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addImageToGrid(data.image);
+                    updateProgress(((index + 1) / files.length) * 100);
+                    if (index === files.length - 1) {
+                        setTimeout(hideProgress, 500);
+                    }
+                } else {
+                    alert('Error uploading image: ' + data.error);
+                    hideProgress();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error occurred');
+                hideProgress();
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    input.value = '';
+}
+
+function addVideos(input) {
+    const files = Array.from(input.files);
+    if (files.length === 0) return;
+    
+    showProgress('Uploading videos...');
+    
+    files.forEach((file, index) => {
+        if (!file.type.startsWith('video/')) {
+            alert(`File ${file.name} is not a video.`);
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const videoData = e.target.result;
+            
+            fetch(`/product/{{ product.pk }}/media/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'add_video',
+                    'video': videoData,
+                    'title': file.name.replace(/\.[^/.]+$/, "")
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addVideoToGrid(data.video);
+                    updateProgress(((index + 1) / files.length) * 100);
+                    if (index === files.length - 1) {
+                        setTimeout(hideProgress, 500);
+                    }
+                } else {
+                    alert('Error uploading video: ' + data.error);
+                    hideProgress();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error occurred');
+                hideProgress();
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    input.value = '';
+}
+
+function removeMedia(type, mediaId) {
+    if (!confirm(`Are you sure you want to remove this ${type}?`)) {
+        return;
+    }
+    
+    fetch(`/product/{{ product.pk }}/media/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'action': `remove_${type}`,
+            [`${type}_id`]: mediaId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.querySelector(`[data-id="${mediaId}"][data-type="${type}"]`).remove();
+        } else {
+            alert('Error removing media: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred');
+    });
+}
+
+function makePrimary(imageId) {
+    fetch(`/product/{{ product.pk }}/media/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'action': 'set_primary_image',
+            'image_id': imageId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI to reflect new primary image
+            document.querySelectorAll('.primary-badge').forEach(badge => {
+                const overlay = badge.parentElement;
+                const itemId = badge.closest('[data-id]').dataset.id;
+                overlay.innerHTML = `
+                    <button type="button" class="btn-make-primary" onclick="makePrimary(${itemId})">
+                        <i class="fas fa-star"></i> Make Primary
+                    </button>
+                    <button type="button" class="btn-remove" onclick="removeMedia('image', ${itemId})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+            });
+            
+            const targetItem = document.querySelector(`[data-id="${imageId}"][data-type="image"]`);
+            const overlay = targetItem.querySelector('.media-overlay');
+            overlay.innerHTML = `
+                <span class="primary-badge">Primary</span>
+                <button type="button" class="btn-remove" onclick="removeMedia('image', ${imageId})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+        } else {
+            alert('Error setting primary image: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred');
+    });
+}
+
+function addImageToGrid(image) {
+    const grid = document.getElementById('images-grid');
+    const addButton = grid.querySelector('.add-media-item');
+    
+    const newItem = document.createElement('div');
+    newItem.className = 'media-item';
+    newItem.setAttribute('data-id', image.id);
+    newItem.setAttribute('data-type', 'image');
+    
+    newItem.innerHTML = `
+        <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
+        <img src="${image.url}" alt="${image.alt_text}">
+        <div class="media-overlay">
+            ${image.is_primary ? 
+                '<span class="primary-badge">Primary</span>' : 
+                `<button type="button" class="btn-make-primary" onclick="makePrimary(${image.id})">
+                    <i class="fas fa-star"></i> Make Primary
+                </button>`
+            }
+            <button type="button" class="btn-remove" onclick="removeMedia('image', ${image.id})">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="media-info">
+            <input type="text" class="alt-text-input" value="${image.alt_text}" 
+                   placeholder="Alt text" onchange="updateAltText(${image.id}, this.value)">
+        </div>
+    `;
+    
+    grid.insertBefore(newItem, addButton);
+}
+
+function addVideoToGrid(video) {
+    const grid = document.getElementById('videos-grid');
+    const addButton = grid.querySelector('.add-media-item');
+    
+    const newItem = document.createElement('div');
+    newItem.className = 'media-item';
+    newItem.setAttribute('data-id', video.id);
+    newItem.setAttribute('data-type', 'video');
+    
+    newItem.innerHTML = `
+        <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
+        <video src="${video.url}" controls></video>
+        <div class="media-overlay">
+            <button type="button" class="btn-remove" onclick="removeMedia('video', ${video.id})">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="media-info">
+            <input type="text" class="title-input" value="${video.title}" 
+                   placeholder="Video title" onchange="updateVideoTitle(${video.id}, this.value)">
+        </div>
+    `;
+    
+    grid.insertBefore(newItem, addButton);
+}
+
+function updateAltText(imageId, altText) {
+    // This could be implemented as an API call to update alt text
+    console.log(`Updating alt text for image ${imageId}: ${altText}`);
+}
+
+function updateVideoTitle(videoId, title) {
+    // This could be implemented as an API call to update video title
+    console.log(`Updating title for video ${videoId}: ${title}`);
+}
+
+// Drag and Drop functionality for reordering
+function makeSortable() {
+    const imageGrid = document.getElementById('images-grid');
+    const videoGrid = document.getElementById('videos-grid');
+    
+    if (imageGrid) {
+        new Sortable(imageGrid, {
+            animation: 150,
+            handle: '.drag-handle',
+            filter: '.add-media-item',
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            onEnd: function(evt) {
+                const imageIds = Array.from(imageGrid.children)
+                    .filter(item => item.dataset.id)
+                    .map(item => item.dataset.id);
+                
+                fetch(`/product/{{ product.pk }}/media/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'action': 'reorder_images',
+                        'image_ids': JSON.stringify(imageIds)
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Failed to reorder images:', data.error);
+                    }
+                });
+            }
+        });
+    }
+    
+    if (videoGrid) {
+        new Sortable(videoGrid, {
+            animation: 150,
+            handle: '.drag-handle',
+            filter: '.add-media-item',
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            onEnd: function(evt) {
+                const videoIds = Array.from(videoGrid.children)
+                    .filter(item => item.dataset.id)
+                    .map(item => item.dataset.id);
+                
+                fetch(`/product/{{ product.pk }}/media/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'action': 'reorder_videos',
+                        'video_ids': JSON.stringify(videoIds)
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Failed to reorder videos:', data.error);
+                    }
+                });
+            }
+        });
+    }
+}
+
+// Initialize sortable when page loads
+document.addEventListener('DOMContentLoaded', makeSortable);
+</script>
+{% endblock %}
+

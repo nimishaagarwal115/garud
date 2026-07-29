@@ -1,0 +1,18 @@
+{% extends 'base/outer_base.html' %}
+{% block title %}Set MPIN - TechnoAce{% endblock %}
+{% block content %}
+<h3 class="mb-4 text-center">Set Your MPIN</h3>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="mpin" class="form-label">New MPIN</label>
+        <input type="password" class="form-control" id="mpin" name="mpin" maxlength="4" required placeholder="4-digit MPIN">
+    </div>
+    <div class="mb-3">
+        <label for="mpin2" class="form-label">Confirm MPIN</label>
+        <input type="password" class="form-control" id="mpin2" name="mpin2" maxlength="4" required placeholder="Confirm MPIN">
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Set MPIN</button>
+</form>
+{% if message %}<div class="alert alert-danger mt-3">{{ message }}</div>{% endif %}
+{% endblock %}

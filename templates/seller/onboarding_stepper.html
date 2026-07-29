@@ -1,0 +1,435 @@
+{% comment %} {% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}KYC Onboarding{% endblock %}
+
+{% block style %}
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+    }
+
+    .stepper-container {
+        max-width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .step-indicator {
+        background: #f8f9fa;
+        border-radius: 0;
+        padding: 20px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .step-line {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background-color: #dc3545;
+        transition: width 0.3s ease;
+    }
+
+    .steps-wrapper {
+        flex: 1;
+        position: relative;
+        overflow-y: auto;
+        background: white;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .step-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    .stepper-navigation {
+        display: none;
+    }
+
+    .step-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .step-loading.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #dc3545;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .step-content > * {
+        max-width: 900px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    /* Error styling */
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
+    .error-message {
+        color: #dc3545 !important;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Hide manual navigation buttons */
+    .stepper-navigation {
+        display: none;
+    }
+
+    /* Next Step Button Styling */
+    .next-step-container {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .next-step-container.show {
+        display: flex;
+    }
+
+    .next-step-btn {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .next-step-btn:hover {
+        background-color: #c82333;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        transform: translateY(-1px);
+    }
+
+    .next-step-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .next-step-btn:disabled {
+        background-color: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .completion-message {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: 500;
+    }
+</style>
+
+{% endblock %}
+
+{% block All_Content %}
+<div class="stepper-container">
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step-line">Step <span id="currentStep">{{ current_step|default:1 }}</span> of {{ total_steps|default:6 }}</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- Dynamic Step Container -->
+    <div class="steps-wrapper">
+        <!-- Loading Overlay -->
+        <div class="step-loading" id="stepLoading">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <!-- Dynamic Step Content -->
+        <div class="step-content" id="stepContent">
+            <!-- Step content will be loaded here dynamically -->
+        </div>
+
+        <!-- Next Step Button Container -->
+        <div class="next-step-container" id="nextStepContainer">
+            <div>
+                <div class="completion-message" id="completionMessage">
+                    Step completed successfully!
+                </div>
+                <button type="button" class="next-step-btn" id="nextStepBtn" onclick="proceedToNextStep()">
+                    Continue to Next Step
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add CSRF token for JavaScript -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+<script>
+let currentStep = {{ current_step|default:1 }};
+const totalSteps = {{ total_steps|default:6 }};
+let stepCompleted = false;
+
+function getCsrfToken() {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    return csrfInput ? csrfInput.value : '';
+}
+
+function updateStepIndicator() {
+    document.getElementById('currentStep').textContent = currentStep;
+    const progressPercentage = (currentStep / totalSteps) * 100;
+    document.getElementById('progressFill').style.width = progressPercentage + '%';
+}
+
+function showLoading(show = true) {
+    const loading = document.getElementById('stepLoading');
+    if (loading) {
+        loading.classList.toggle('show', show);
+    }
+}
+
+function showNextStepButton(show = true, customMessage = null) {
+    const container = document.getElementById('nextStepContainer');
+    const button = document.getElementById('nextStepBtn');
+    const message = document.getElementById('completionMessage');
+    
+    if (container && button) {
+        container.classList.toggle('show', show);
+        
+        if (show) {
+            stepCompleted = true;
+            if (customMessage) {
+                message.textContent = customMessage;
+            }
+            
+            // Update button text based on current step
+            if (currentStep >= totalSteps) {
+                button.textContent = 'Complete Onboarding';
+            } else {
+                button.textContent = 'Continue to Next Step';
+            }
+        } else {
+            stepCompleted = false;
+        }
+    }
+}
+
+function loadStep(stepNumber) {
+    console.log('Loading step:', stepNumber);
+    showLoading(true);
+    showNextStepButton(false); // Hide next button when loading new step
+    
+    const url = window.location.href + '?step=' + stepNumber;
+    console.log('Request URL:', url);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        showLoading(false);
+        if (data.success) {
+            console.log('Setting innerHTML, HTML length:', data.html.length);
+            document.getElementById('stepContent').innerHTML = data.html;
+            currentStep = stepNumber;
+            updateStepIndicator();
+            
+            // Attach form submission handler to the new form
+            const form = document.querySelector('#stepContent form');
+            if (form) {
+                console.log('Form found, attaching handlers');
+                handleFormSubmission(form);
+            } else {
+                console.log('No form found in step content');
+            }
+        } else {
+            console.error('Error loading step:', data.error);
+            alert('Error loading step: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        showLoading(false);
+        alert('Network error occurred: ' + error.message);
+    });
+}
+
+function handleFormSubmission(formElement) {
+    formElement.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        showLoading(true);
+        showNextStepButton(false); // Hide next button during submission
+        
+        // Add step number to form data
+        const formData = new FormData(this);
+        formData.append('step', currentStep);
+        
+        fetch(this.action || window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            showLoading(false);
+            if (data.success) {
+                if (data.redirect_url) {
+                    // Final step - redirect to completion page
+                    window.location.href = data.redirect_url;
+                } else {
+                    // Show success message and next step button
+                    const successMessage = data.message || 'Step completed successfully!';
+                    showNextStepButton(true, successMessage);
+                }
+            } else {
+                // Handle validation errors
+                if (data.form_errors) {
+                    displayFormErrors(data.form_errors);
+                } else {
+                    alert('Error: ' + (data.error || 'Form submission failed'));
+                }
+            }
+        })
+        .catch(error => {
+            showLoading(false);
+            console.error('Error:', error);
+            alert('Network error occurred');
+        });
+    });
+}
+
+function proceedToNextStep() {
+    if (!stepCompleted) {
+        alert('Please complete the current step first.');
+        return;
+    }
+    
+    if (currentStep < totalSteps) {
+        loadStep(currentStep + 1);
+    } else {
+        // This is the final step
+        alert('Onboarding completed!');
+        // You can add redirect logic here if needed
+    }
+}
+
+function displayFormErrors(errors) {
+    // Clear previous errors
+    document.querySelectorAll('.error-message').forEach(el => el.remove());
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    
+    // Display new errors
+    for (const [fieldName, errorMessage] of Object.entries(errors)) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.add('is-invalid');
+            
+            // Create error message element
+            const errorEl = document.createElement('div');
+            errorEl.className = 'error-message text-danger small mt-1';
+            errorEl.textContent = errorMessage;
+            
+            // Insert error message after the field
+            field.parentNode.insertBefore(errorEl, field.nextSibling);
+        }
+    }
+}
+
+function nextStep() {
+    if (currentStep < totalSteps) {
+        loadStep(currentStep + 1);
+    }
+}
+
+function prevStep() {
+    if (currentStep > 1) {
+        loadStep(currentStep - 1);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOM loaded, current step:', currentStep);
+    updateStepIndicator();
+    
+    // Load the first step
+    loadStep(currentStep);
+});
+
+// Expose functions globally for manual navigation if needed
+window.nextStep = nextStep;
+window.prevStep = prevStep;
+window.loadStep = loadStep;
+window.proceedToNextStep = proceedToNextStep;
+</script>
+{% endblock %} {% endcomment %}

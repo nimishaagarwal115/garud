@@ -1,0 +1,54 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block all_title %}उत्पाद जोड़ें{% endblock %}
+
+{% block css_files %}
+<link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/footer.css' %}">
+<style>
+/* Reset and normalize */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: #ffffff; font-family: Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+
+/* Empty State / Landing Page CSS */
+.landing-container { background-color: #ffffff; min-height: calc(100vh - 140px); display: flex; flex-direction: column; align-items: center; padding: 0 20px 40px 20px; width: 100%; }
+.mic-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; margin-top: 60px; margin-bottom: 40px; width: 100%; }
+.big-mic { background-color: #B43E24; width: 160px; height: 160px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+.big-mic svg { width: 65px; height: 65px; fill: none; stroke: #ffffff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.instruction-text { font-size: 20px; color: #333333; text-align: center; margin-bottom: 50px; line-height: 1.4; max-width: 320px; }
+.buttons-container { display: flex; justify-content: space-between; width: 100%; gap: 12px; }
+.btn-ai { background-color: #F6A93B; color: #000000; font-size: 15px; font-weight: 500; border: none; border-radius: 4px; padding: 14px 10px; flex: 1; text-align: center; text-decoration: none; }
+.btn-manual { background-color: #B43E24; color: #ffffff; font-size: 15px; font-weight: 500; border: none; border-radius: 4px; padding: 14px 10px; flex: 1; text-align: center; text-decoration: none; }
+</style>
+{% endblock %}
+
+{% block All_Content %}
+{% include "components/header.html" %}
+
+<div class="landing-container">
+    <div class="mic-container">
+        <div class="big-mic">
+            <!-- Microphone Icon SVGs exactly like standard outlines -->
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+                <line x1="8" y1="22" x2="16" y2="22"></line>
+            </svg>
+        </div>
+    </div>
+    
+    <div class="instruction-text" translate="no" class="notranslate">
+        उत्पाद जोड़ने के लिए नीचे दिए गए बटन पर क्लिक करें
+    </div>
+    
+    <div class="buttons-container">
+        <!-- AI flow goes to upload_wizard step 1 -->
+        <a href="{% url 'upload_wizard' %}?step=1" class="btn-ai notranslate" translate="no">AI के द्वारा उत्पाद जोड़ें</a>
+        <a href="{% url 'manual_upload_wizard' %}" class="btn-manual notranslate" translate="no">स्वयं उत्पाद जोड़ें</a>
+    </div>
+</div>
+
+{% include "components/footer.html" %}
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+{% block title %}Select Delivery Address{% endblock %}
+
+{% block content %}
+<div class="checkout-wrapper">
+    <div class="checkout-container pb-5">
+        <h2 class="checkout-page-title mb-4">Select Delivery Address</h2>
+        
+        <form method="post" action="{% url 'checkout_address_selection' %}" id="addressSelectionForm">
+            {% csrf_token %}
+            
+            {% if addresses %}
+                <div class="address-list">
+                    {% for address in addresses %}
+                    <label class="address-card {% if address.is_default or forloop.first %}selected{% endif %}">
+                        <div class="address-card-header">
+                            <div class="d-flex align-items-center">
+                                <input type="radio" name="address_id" value="{{ address.id }}" class="address-radio" {% if address.is_default or forloop.first %}checked{% endif %}>
+                                <span class="full-name ms-2">{{ address.full_name }}</span>
+                                {% if address.is_default %}
+                                <span class="default-badge ms-2">Default</span>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'customer_address_edit' address.id %}?next={% url 'checkout_address_selection' %}" class="edit-btn text-decoration-none">Edit</a>
+                        </div>
+                        <div class="address-details mt-2 ms-4 ps-1">
+                            {{ address.flat_house_building }}, {{ address.area_street_village }}<br>
+                            {{ address.town_city }}, {{ address.state }} {{ address.pincode }}<br>
+                            <div class="phone mt-1 text-muted">Phone: {{ address.mobile_number }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state text-center py-5">
+                    <h5 class="text-muted">No addresses found</h5>
+                    <p class="text-muted" style="font-size: 14px;">Please add a new delivery address to proceed with your order.</p>
+                </div>
+            {% endif %}
+
+            <div class="action-buttons mt-4">
+                <a href="{% url 'customer_address_add' %}?next={% url 'checkout_address_selection' %}" class="add-address-btn text-decoration-none text-center mb-3">
+                    <i class="bi bi-plus-lg me-1"></i> Add New Address
+                </a>
+                
+                <button type="submit" class="deliver-btn w-100" {% if not addresses %}disabled{% endif %}>
+                    Deliver To This Address
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+body {
+    background-color: #f8f9fa;
+    font-family: 'Inter', sans-serif;
+}
+.checkout-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+.checkout-container {
+    padding: 16px;
+}
+.checkout-page-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 8px;
+}
+.address-card {
+    display: block;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.address-card.selected {
+    border-color: #b94a2c;
+    background-color: #fffcf5;
+}
+.address-radio {
+    accent-color: #b94a2c;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+.full-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+.default-badge {
+    font-size: 10px;
+    background: #e9ecef;
+    color: #495057;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+.edit-btn {
+    font-size: 14px;
+    color: #b94a2c;
+    font-weight: 500;
+}
+.address-details {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+}
+.add-address-btn {
+    display: block;
+    background: #fff;
+    border: 1px dashed #b94a2c;
+    color: #b94a2c;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 15px;
+}
+.deliver-btn {
+    background: #b94a2c;
+    color: #fff;
+    border: none;
+    padding: 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+}
+.deliver-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+.address-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.address-card');
+    cards.forEach(card => {
+        const radio = card.querySelector('.address-radio');
+        
+        radio.addEventListener('change', function() {
+            if(this.checked) {
+                cards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

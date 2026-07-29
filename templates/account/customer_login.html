@@ -1,0 +1,134 @@
+{% extends 'base/outer_base.html' %}
+{% load static %}
+
+{% block title %}Customer Sign In{% endblock %}
+
+{% block styles %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+    }
+    .auth-container {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 40px 24px;
+        text-align: center;
+        background-color: #ffffff;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .auth-illustration-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 28vh; /* ~25-30% of screen */
+        margin-bottom: 30px;
+    }
+    .auth-illustration {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .auth-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a1a; /* N90 */
+        margin-bottom: 12px;
+        text-align: center;
+    }
+    .auth-desc {
+        font-size: 14px;
+        color: #666666; /* N60 */
+        line-height: 1.5;
+        margin-bottom: 32px;
+        text-align: center;
+    }
+    .form-group {
+        text-align: left;
+        margin-bottom: 24px;
+    }
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a1a1a; /* N90 */
+        margin-bottom: 8px;
+    }
+    .form-label .required {
+        color: #d94b2b; /* Red asterisk */
+    }
+    .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 15px;
+        border: 1px solid #e0e0e0; /* N20 */
+        border-radius: 8px; /* Rounded corners */
+        color: #1a1a1a;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+    .form-control::placeholder {
+        color: #999999; /* N40 */
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #d94b2b;
+    }
+    .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 16px;
+        background-color: #d94b2b; /* P60 / Dark red */
+        color: #ffffff; /* N10 */
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background-color 0.2s;
+        text-align: center;
+    }
+    .btn-primary:hover {
+        background-color: #c24127;
+    }
+    .error-msg {
+        color: #d94b2b;
+        font-size: 14px;
+        margin-bottom: 15px;
+        text-align: left;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-illustration-container">
+        <img src="{% static 'images/account/login.png' %}" alt="Login Illustration" class="auth-illustration">
+    </div>
+    
+    <h1 class="auth-title">Sign In</h1>
+    <p class="auth-desc">Enter your aadhar card no with registered mobile no. We will send you a Confirmation Code.</p>
+    
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'customer_login' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="aadhaar">Aadhar Card No.<span class="required">*</span></label>
+            <input type="text" id="aadhaar" name="aadhaar" class="form-control" placeholder="Enter Aadhar card no" maxlength="12" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="mobile">Registered Mobile No.<span class="required">*</span></label>
+            <input type="tel" id="mobile" name="mobile" class="form-control" placeholder="Enter Mobile Number" required>
+        </div>
+        
+        <button type="submit" class="btn-primary">GET OTP</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Success{% endblock %}
+
+{% block allStyles %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+    .auth-container {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 40px 24px;
+        text-align: center;
+        background-color: #ffffff;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .auth-illustration-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 35vh;
+        margin-bottom: 30px;
+    }
+    .auth-illustration {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .auth-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 12px;
+    }
+    .auth-desc {
+        font-size: 14px;
+        color: #666666;
+        line-height: 1.5;
+    }
+</style>
+<script>
+    // Redirect to Customer Home page after 2 seconds
+    setTimeout(function() {
+        window.location.href = "{% url 'customer_home' %}";
+    }, 2000);
+</script>
+{% endblock allStyles %}
+
+{% block All_Content %}
+<div class="auth-container">
+    <div class="auth-illustration-container">
+        <img src="{% static 'images/account/success.png' %}" alt="Success" class="auth-illustration">
+    </div>
+    <h1 class="auth-title">Success</h1>
+    <p class="auth-desc">Your order has been placed successfully.<br>Thank you for shopping with us!</p>
+</div>
+{% endblock %}
